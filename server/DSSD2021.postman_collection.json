@@ -1,0 +1,93 @@
+{
+	"info": {
+		"_postman_id": "d9c7571d-c6d6-4908-aa15-6721b96d3f7a",
+		"name": "DSSD2021",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "UploadEstatuto",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "estatuto",
+							"type": "file",
+							"src": "/Users/gastonambrogi/Pictures/cortazar_natalicio.jpg"
+						},
+						{
+							"key": "nombreSociedad",
+							"value": "DSSD 2",
+							"type": "text"
+						},
+						{
+							"key": "apoderado",
+							"value": "yo",
+							"type": "text"
+						},
+						{
+							"key": "domicilioLegal",
+							"value": "calle wallaby 42 sidney",
+							"type": "text"
+						},
+						{
+							"key": "domicilioReal",
+							"value": "calle wallaby 42 sidney",
+							"type": "text"
+						},
+						{
+							"key": "emailApoderado",
+							"value": "gaston.ambrogi@gmail.com",
+							"type": "text"
+						},
+						{
+							"key": "paises",
+							"value": "ARG",
+							"type": "text"
+						},
+						{
+							"key": "paises",
+							"value": "UY",
+							"type": "text"
+						},
+						{
+							"key": "paises",
+							"value": "BR",
+							"type": "text"
+						},
+						{
+							"key": "socios",
+							"value": "JoseMi",
+							"type": "text"
+						},
+						{
+							"key": "socios",
+							"value": "Maru",
+							"type": "text"
+						}
+					],
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3000/expedients/",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"expedients",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
