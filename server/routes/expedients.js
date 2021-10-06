@@ -58,6 +58,7 @@ files: {
 
 router.post('/', async (req, res) => {
   let tmpExpedient = {...req.body};
+  // validaciones de BE
   tmpExpedient.estatuto = uploadEstatuto(req, req.files.estatuto);
 
   const { expedient, error } = await supabase.from('expedient').insert([tmpExpedient]);
