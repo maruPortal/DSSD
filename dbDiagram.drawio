@@ -1,10 +1,10 @@
-<mxfile host="app.diagrams.net" modified="2021-10-06T12:22:47.755Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36" etag="__HUk_rOibjV68DiY1uz" version="15.4.3" type="github">
+<mxfile host="app.diagrams.net" modified="2021-10-06T12:52:23.919Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36" etag="IQshMFsCEHkJwQblgo8l" version="15.4.3" type="github">
   <diagram id="tg0lqJwbmXBvQMINFFCC" name="Page-1">
     <mxGraphModel dx="1426" dy="771" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="SOCzksc2_nWab9quwr7T-1" value="Sociedad Anonima" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;" parent="1" vertex="1">
+        <mxCell id="SOCzksc2_nWab9quwr7T-1" value="SociedadAnonima" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;" parent="1" vertex="1">
           <mxGeometry x="120" y="46" width="230" height="190" as="geometry" />
         </mxCell>
         <mxCell id="SOCzksc2_nWab9quwr7T-2" value="nombreSociedad&#xa;apoderado&#xa;emailApoderado&#xa;fechaDeCreacion&#xa;estatuto&#xa;domicilioLegal&#xa;domicilioReal&#xa;exportaServicios&#xa;estado&#xa;numeroHash&#xa;numeroExpediente&#xa;&#xa;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontColor=#000000;" parent="SOCzksc2_nWab9quwr7T-1" vertex="1">
