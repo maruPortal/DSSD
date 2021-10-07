@@ -44,7 +44,7 @@ function FormRegistration() {
 
   const [modalOpen, setModalOpen] = React.useState(false);
 
-  let aporteTotal = 0;
+  const [aporteTotal, setAporteTotal] = React.useState(0);
 
   const { data, loading } = useQuery(GET_COUNTRIES);
   if (loading) {
@@ -64,12 +64,6 @@ function FormRegistration() {
     setModalOpen(false);
   };
 
-  const addPartners = () => {
-    console.log(partner);
-    addPartner(partner);
-    handleModalClose();
-  };
-
   const onSubmitHandler = (e) => {
     e.preventDefault();
     console.log(form);
@@ -81,15 +75,16 @@ function FormRegistration() {
   };
 
   const addPartner = (partner) => {
-    console.log(partner);
     // chequear porcentaje al 100% . no debe superarlo
-    console.log(aporteTotal + partner.porcentaje <= 100);
-
-    if (aporteTotal + partner.porcentaje <= 100) {
-      //ver
-      aporteTotal = aporteTotal + partner.porcentaje;
+    if (aporteTotal + parseInt(partner.porcentaje) <= 100) {
+      setAporteTotal(aporteTotal + parseInt(partner.porcentaje));
       form.socios.push(partner);
     }
+  };
+
+  const addPartners = () => {
+    addPartner(partner);
+    handleModalClose();
   };
 
   const listPartners = form?.socios?.map((socio, index) => {
@@ -104,7 +99,7 @@ function FormRegistration() {
 
   return (
     <form onSubmit={onSubmitHandler} className={classesForm.form}>
-      <h4 className={classesForm["text"]}>Registro de Sociedad Anonima</h4>
+      <h2 className={classesForm["text"]}>Registro de Sociedad Anonima</h2>
       <Box
         sx={{
           "& .MuiTextField-root": { margin: "2%", width: "90%" },
