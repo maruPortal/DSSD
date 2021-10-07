@@ -6,7 +6,7 @@
 	},
 	"item": [
 		{
-			"name": "UploadEstatuto",
+			"name": "Save Expedient",
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -20,7 +20,7 @@
 						},
 						{
 							"key": "nombreSociedad",
-							"value": "DSSD 2",
+							"value": "DSSD expediente 1",
 							"type": "text"
 						},
 						{
@@ -60,12 +60,12 @@
 						},
 						{
 							"key": "socios",
-							"value": "JoseMi",
+							"value": "{ nombreSocio: \"JoseMi\", porcentajeAporte: \"30\" }",
 							"type": "text"
 						},
 						{
 							"key": "socios",
-							"value": "Maru",
+							"value": "{ nombreSocio: \"Maru\", porcentajeAporte: \"70\" }",
 							"type": "text"
 						}
 					],
@@ -84,6 +84,93 @@
 					"path": [
 						"expedients",
 						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "instantiateProcess",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-Bonita-API-Token",
+						"value": "81703c9c-bebe-441e-a8c2-eb3db660a7a9",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "localhost:8080/bonita/API/bpm/process/8692655385600760855/instantiation",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"bonita",
+						"API",
+						"bpm",
+						"process",
+						"8692655385600760855",
+						"instantiation"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "loginservice",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "guest",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "bpm",
+							"type": "text"
+						},
+						{
+							"key": "redirect",
+							"value": "false",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "localhost:8080/bonita/loginservice",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"bonita",
+						"loginservice"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "localhost:3000/bonita/test",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/bonita/test",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"bonita",
+						"test"
 					]
 				}
 			},
