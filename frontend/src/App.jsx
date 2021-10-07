@@ -8,7 +8,6 @@ import { setup } from "./graphql/graphql";
 import { ApolloProvider } from "@apollo/client";
 
 const client = setup();
-
 function App() {
   const history = useHistory();
 
