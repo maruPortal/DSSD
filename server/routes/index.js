@@ -7,9 +7,9 @@ router.get("/", function (req, res, next) {
 });
 
 //Ruta para comprobar metodos de la API mediante metodo TestALL
-router.get("/testAPI", function (req, res, next) {
-  Bonita.testAll();
-  res.render("index", { title: "Express" });
-});
+// router.get("/testAPI", function (req, res, next) {
+//   Bonita.testAll();
+//   res.render("index", { title: "Express" });
+// });
 
 module.exports = router;
