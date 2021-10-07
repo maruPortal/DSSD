@@ -5,16 +5,11 @@ var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 var cors = require("cors");
 const morgan = require("morgan");
-// const bodyParser = require("body-parser");
 const fileUpload = require("express-fileupload");
 
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
-
-// var indexRouter = require("./routes/index");
-// var usersRouter = require("./routes/users");
-var expedientsRouter = require("./routes/expedients");
 
 var app = express();
 
@@ -53,8 +48,7 @@ app.use(function (err, req, res, next) {
   res.render("error");
 });
 
-//app.use("/", indexRouter);
-// app.use('/users', usersRouter);
-app.use("/expedients", expedientsRouter);
+app.use("/expedients", require("./routes/expedients"));
+app.use("/bonita", require("./routes/bonita"));
 
 module.exports = app;

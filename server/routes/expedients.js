@@ -3,6 +3,9 @@ var router = express.Router();
 const Bonita = require("../model/bonita.js");
 const supabase = require("../helpers/supabase");
 
+/**
+ * Receives a file (BLOB) returns a public url of that file saved in `public/uploads/estatutos/`
+ */
 const uploadEstatuto = (req, estatuto) => {
   // upload file with unique name
   let timestamp = +new Date();
@@ -16,26 +19,58 @@ const uploadEstatuto = (req, estatuto) => {
   )}`;
 };
 
-// Note: Beware to set encType="multipart/form-data" on the <form />
-// POST localhost:3000/expedients/upload-estatuto
-// body { estatuto: FILE }
-router.post("/upload-estatuto", async (req, res) => {
-  try {
-    if (!req.files) {
-      res.json({ status: false, message: "No file uploaded", publicURL: null });
-    } else {
-      res.json({
-        status: true,
-        message: "File uploaded",
-        publicURL: uploadEstatuto(req, req.files.estatuto),
-      });
-    }
-  } catch (err) {
-    console.log(err);
-    res.status(500).json(err);
-  }
-});
+/**
+ * Receives:
+ *   expedient: Supabase insert result
+ * Returns:
+ *   Bonita response of bonita.postCase({...})
+ */
+const setExpedientToBonita = async (expedient) => {
+  // EXAMPLE:
+  // const newExpedient = [
+  //   { name: "apoderado", value: "pepito" },
+  //   { name: "domicilioLegal", value: "calle" },
+  //   {
+  //     name: "socios",
+  //     value: [
+  //       { nombreSocio: "JoseMi", porcentajeAporte: "30" },
+  //       { nombreSocio: "Maru", porcentajeAporte: "70" },
+  //     ],
+  //   },
+  //   { name: "paises", value: ["Argentina", "Brasil"] },
+  //   { name: "esValidoEnMesa", value: new Boolean(true) },
+  // ];
 
+  const transformedExpedient = Object.keys(expedient).map((key) => {
+    if (Array.isArray(expedient[key])) {
+      value = expedient[key];
+    } else {
+      if (key === "estado") {
+        value = new Boolean(value);
+      } else {
+        value = `${expedient[key]}`;
+      }
+    }
+
+    return {
+      name: key,
+      value,
+    };
+  });
+
+  let bonitaUser = await Bonita.login();
+  await bonitaUser.getProcessID("Sociedades");
+  const responseBonita = await bonitaUser.postCase(transformedExpedient);
+  let userMesa = await bonitaUser.getUserID("mesaentradas1");
+  let currentTask = await bonitaUser.getIdTask();
+  await bonitaUser.assignCase(userMesa, currentTask);
+  return responseBonita;
+};
+
+/**
+ * GET localhost:3000/expedients/
+ * NOTE query to supabase
+ */
 router.get("/", async (req, res, next) => {
   try {
     let { data: expedients, error } = await supabase
@@ -46,42 +81,14 @@ router.get("/", async (req, res, next) => {
     }
     res.json(expedients);
   } catch (error) {
-    res.status(500).json(error);
-  }
-});
-
-///Bonita API
-router.get("/test", async (req, res, next) => {
-  // const newExpedient = [
-  //   { name: "apoderado", value: "pepito" },
-  //   { name: "domicilioLegal", value: "calle" },
-  //   {
-  //     name: "socios",
-  //     value: [
-  //       { nombreSocio: "juan Perez", porcentajeAporte: "30" },
-  //       { nombreSocio: "carlitos", porcentajeAporte: "70" },
-  //     ],
-  //   },
-  //   { name: "paises", value: ["Argentina", "Brasil"] },
-  //   //{ name: "esValidoEnMesa", value: true },
-  // ];
-  try {
-    let bonitaUser = await Bonita.login();
-    await bonitaUser.getProcessID("Sociedades");
-    await bonitaUser.postCase(newExpedient);
-    let userMesa = await bonitaUser.getUserID("mesaentradas1");
-    let currentTask = await bonitaUser.getIdTask();
-    await bonitaUser.assignCase(userMesa, currentTask);
-    //await bonitaUser.executeTask(currentTask);
-  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Note: Beware to set encType="multipart/form-data" on the <form />
-// POST localhost:3000/expedients/
 /**
- * NOTE working supabase
+ * POST localhost:3000/expedients/
+ * Note: Beware to set encType="multipart/form-data" on the <form />
+ * NOTE Inserts expedient into Supabase
  * body:
 {
   "nombreSociedad": "DSSD 2",
@@ -92,40 +99,64 @@ router.get("/test", async (req, res, next) => {
   "estado": "0",
   "estatuto": "URL",
   "paises": ["ARG","UY","BR"],
-  "socios": ["JoseMi","Maru"]
+  "socios": [
+    { nombreSocio: "JoseMi", porcentajeAporte: "30" },
+    { nombreSocio: "Maru", porcentajeAporte: "70" },
+  ]
 }
 
 files: {
   estatuto: FILE
 }
 */
-
 router.post("/", async (req, res) => {
-  let tmpExpedient = { ...req.body };
-  // validaciones de BE
-  tmpExpedient.estatuto = uploadEstatuto(req, req.files.estatuto);
+  try {
+    let tmpExpedient = { ...req.body };
+    // validaciones de BE
+    tmpExpedient.estatuto = uploadEstatuto(req, req.files.estatuto);
 
-  const { expedient, error } = await supabase
-    .from("expedient")
-    .insert([tmpExpedient]);
+    const {
+      body: [expedient],
+      error,
+    } = await supabase.from("expedient").insert([tmpExpedient]);
 
-  if (error) {
-    res.status(500).json(error);
-    return;
+    if (error) {
+      res.status(500).json(error);
+      return;
+    }
+
+    const responseBonita = await setExpedientToBonita(expedient);
+
+    if (!responseBonita) {
+      res.status(500).json({ responseBonita });
+      return;
+    }
+
+    res.json(expedient);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-
-  /* let bonitaUser = await Bonita.login();
-      // const dataAllProcesses = await bonitaUser.getAllProcesses();
-      // // console.log(dataAllProcesses);
-  
-      await bonitaUser.getProcessID('Sociedades');
-      const initBonitaProc = await bonitaUser.initiateProcess();
-      console.log(initBonitaProc);
-  
-      // const data = await bonitaUser.postCase( expediente )
-   */
-
-  res.json(expedient);
 });
 
+/* 
+  // Note: Beware to set encType="multipart/form-data" on the <form />
+  // POST localhost:3000/expedients/upload-estatuto
+  // body { estatuto: FILE }
+  router.post("/upload-estatuto", async (req, res) => {
+    try {
+      if (!req.files) {
+        res.json({ status: false, message: "No file uploaded", publicURL: null });
+      } else {
+        res.json({
+          status: true,
+          message: "File uploaded",
+          publicURL: uploadEstatuto(req, req.files.estatuto),
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(500).json(err);
+    }
+  });
+ */
 module.exports = router;
