@@ -8,3 +8,18 @@ export const setup = () => {
 
   return client;
 };
+
+// client
+//   .query({
+//     query: gql`
+//     query countriesQuery {
+//       countries {
+//         code
+//         name
+
+//         states {
+//           name
+//         }
+//     `,
+//   })
+//   .then((result) => console.log(result));

@@ -2,11 +2,11 @@ import React from "react";
 import useStyles from "./formRegistrationStyle";
 import Button from "@mui/material/Button";
 import MenuItem from "@mui/material/MenuItem";
-
+import InputLabel from "@mui/material/InputLabel";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import LocalizationProvider from "@mui/lab/LocalizationProvider";
-
+import Select from "@mui/material/Select";
 import DesktopDatePicker from "@mui/lab/DesktopDatePicker";
 import AdapterDateFns from "@mui/lab/AdapterDateFns";
 
@@ -17,9 +17,12 @@ import DialogTitle from "@mui/material/DialogTitle";
 
 import { useQuery } from "@apollo/client";
 import { GET_COUNTRIES } from "../../graphql/query";
+import { colors } from "@mui/material";
 
 function FormRegistration() {
   const classesForm = useStyles();
+  const [paises, setPaises] = React.useState([]);
+
   const [value, setValue] = React.useState(new Date());
   const [form, setForm] = React.useState({
     sociedad: "",
@@ -30,6 +33,7 @@ function FormRegistration() {
     domicilioLegal: "",
     domocilioReal: "",
     email: "",
+    paises: [],
   });
 
   const [partner, setPartner] = React.useState({
@@ -42,11 +46,15 @@ function FormRegistration() {
 
   let aporteTotal = 0;
 
-  const { data, loading } = useQuery(GET_COUNTRIES, {
-    onError: (e) => console.log(e),
-  });
+  const { data, loading } = useQuery(GET_COUNTRIES);
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+  // onError: (e) => console.log(e),
 
-  console.log(data, loading);
+  const setPaisesHandler = (value) => {
+    setPaises((paises) => [...paises, "," + value]); //paises = [...paises, value];
+  };
 
   const handleClickModalOpen = () => {
     setModalOpen(true);
@@ -197,8 +205,21 @@ function FormRegistration() {
           type="email"
           onChange={(e) => setForm({ ...form, email: e.target.value })}
         />
+        <InputLabel>Pais *puede seleccionar más de uno</InputLabel>
+        <Select
+          id="paises"
+          value={data.countries[0].name}
+          label="Paises"
+          onChange={(e) => setPaisesHandler(e.target.value)}
+        >
+          {data.countries.map((pais, index) => (
+            <MenuItem key={index} value={pais.name}>
+              {pais.name}
+            </MenuItem>
+          ))}
+        </Select>
       </Box>
-
+      {paises}
       <div key="9" className={classesForm["form__submit-button"]}>
         <Button key="7" type="submit">
           <h4 className={classesForm["text"]}>REGISTRAR</h4>
