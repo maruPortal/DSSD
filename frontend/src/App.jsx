@@ -1,45 +1,32 @@
-import React, { useState } from 'react'
-import logo from './logo.svg'
-import './App.css'
+import React from "react";
+import "./App.css";
+import { Route, Switch, useHistory } from "react-router-dom";
+import FormRegistration from "./components/pageRegistration/FormRegistration";
+import Button from "@mui/material/Button";
+import { routes } from "./constants/routes";
+import { setup } from "./graphql/graphql";
+import { ApolloProvider } from "@apollo/client";
+
+const client = setup();
 
 function App() {
-  const [count, setCount] = useState(0)
+  const history = useHistory();
 
+  const goRegistration = () => {
+    history.push(routes.REGISTRATION);
+  };
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>Hello Vite + React!</p>
-        <p>
-          <button type="button" onClick={() => setCount((count) => count + 1)}>
-            count is: {count}
-          </button>
-        </p>
-        <p>
-          Edit <code>App.jsx</code> and save to test HMR updates.
-        </p>
-        <p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-          {' | '}
-          <a
-            className="App-link"
-            href="https://vitejs.dev/guide/features.html"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Vite Docs
-          </a>
-        </p>
-      </header>
-    </div>
-  )
+    <ApolloProvider client={client}>
+      <Switch>
+        <Route path={routes.INIT} exact>
+          <Button onClick={goRegistration}>Crear sociedad anonima</Button>
+        </Route>
+        <Route path={routes.REGISTRATION}>
+          <FormRegistration />
+        </Route>
+      </Switch>
+    </ApolloProvider>
+  );
 }
 
-export default App
+export default App;
