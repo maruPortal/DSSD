@@ -51,18 +51,31 @@ router.get("/", async (req, res, next) => {
 });
 
 ///Bonita API
-router.get("/", async (req, res, next) => {
-  const newExpedient = [
-    { name: "apoderado", value: "pepito" },
-    { name: "domicilioLegal", value: "calle" },
-  ];
-  let bonitaUser = await Bonita.login();
-  await bonitaUser.getProcessID("Sociedades");
-  await bonitaUser.postCase(newExpedient);
-  let userMesa = await bonitaUser.getUserID("mesaentradas1");
-  let currentTask = await bonitaUser.getIdTask();
-  await bonitaUser.assignCase(userMesa, currentTask);
-  //await bonitaUser.executeTask(currentTask);
+router.get("/test", async (req, res, next) => {
+  // const newExpedient = [
+  //   { name: "apoderado", value: "pepito" },
+  //   { name: "domicilioLegal", value: "calle" },
+  //   {
+  //     name: "socios",
+  //     value: [
+  //       { nombreSocio: "juan Perez", porcentajeAporte: "30" },
+  //       { nombreSocio: "carlitos", porcentajeAporte: "70" },
+  //     ],
+  //   },
+  //   { name: "paises", value: ["Argentina", "Brasil"] },
+  //   //{ name: "esValidoEnMesa", value: true },
+  // ];
+  try {
+    let bonitaUser = await Bonita.login();
+    await bonitaUser.getProcessID("Sociedades");
+    await bonitaUser.postCase(newExpedient);
+    let userMesa = await bonitaUser.getUserID("mesaentradas1");
+    let currentTask = await bonitaUser.getIdTask();
+    await bonitaUser.assignCase(userMesa, currentTask);
+    //await bonitaUser.executeTask(currentTask);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Note: Beware to set encType="multipart/form-data" on the <form />

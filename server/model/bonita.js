@@ -31,15 +31,21 @@ class Bonita {
     };
   }
 
-  static login() {
+  static async login() {
     let params = new URLSearchParams();
     let method = "POST";
     params.append("username", USERNAME);
     params.append("password", PASSWORD);
     params.append("redirect", false);
-    return fetch(`${url}loginservice`, { method: method, body: params }).then(
-      (res) => new Bonita(res)
-    );
+    try {
+      const res = await fetch(`${url}loginservice`, {
+        method: method,
+        body: params,
+      });
+      return new Bonita(res);
+    } catch (error) {
+      return error;
+    }
   }
   ///Metodos Procesos
   // async getAllProcesses() {
