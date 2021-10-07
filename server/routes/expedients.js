@@ -36,16 +36,18 @@ router.post("/upload-estatuto", async (req, res) => {
 });
 
 ///Bonita API
-router.get("/", async (req, res) => {
-  const newExpedient = {};
+router.get("/", async (req, res, next) => {
+  const newExpedient = [
+    { name: "apoderado", value: "pepito" },
+    { name: "domicilioLegal", value: "calle" },
+  ];
   let bonitaUser = await Bonita.login();
-  console.log(bonitaUser);
   await bonitaUser.getProcessID("Sociedades");
-  await bonitaUser.postCase(variables);
+  await bonitaUser.postCase(newExpedient);
   let userMesa = await bonitaUser.getUserID("mesaentradas1");
   let currentTask = await bonitaUser.getIdTask();
   await bonitaUser.assignCase(userMesa, currentTask);
-  await bonitaUser.executeTask(currentTask);
+  //await bonitaUser.executeTask(currentTask);
 });
 
 /* 

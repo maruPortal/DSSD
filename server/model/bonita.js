@@ -12,10 +12,7 @@ const CONTENT_TYPE = {
   JSON: "application/json",
 };
 /////////////FORMATO DE LAS VARIABLES/////////
-const variables = [
-  { name: "apoderado", value: "pepito" },
-  { name: "domicilioLegal", value: "calle" },
-];
+
 class Bonita {
   constructor(res) {
     let cookies = getCookies(res);
