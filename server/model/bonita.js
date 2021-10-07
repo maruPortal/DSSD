@@ -1,5 +1,4 @@
 //Variables iniciales
-const { response } = require("express");
 const fetch = require("node-fetch");
 const USERNAME = "guest";
 const PASSWORD = "bpm";

@@ -5,15 +5,15 @@ var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 var cors = require("cors");
 const morgan = require("morgan");
-const bodyParser = require("body-parser");
+// const bodyParser = require("body-parser");
 const fileUpload = require("express-fileupload");
 
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
 
-var indexRouter = require("./routes/index");
-var usersRouter = require("./routes/users");
+// var indexRouter = require("./routes/index");
+// var usersRouter = require("./routes/users");
 var expedientsRouter = require("./routes/expedients");
 
 var app = express();
