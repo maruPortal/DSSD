@@ -5,6 +5,10 @@ import MenuItem from "@mui/material/MenuItem";
 import InputLabel from "@mui/material/InputLabel";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
+import Checkbox from "@mui/material/Checkbox";
+import ListItemText from "@mui/material/ListItemText";
+import FormGroup from "@mui/material/FormGroup";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import LocalizationProvider from "@mui/lab/LocalizationProvider";
 import Select from "@mui/material/Select";
 import DesktopDatePicker from "@mui/lab/DesktopDatePicker";
@@ -34,6 +38,7 @@ function FormRegistration() {
     domocilioReal: "",
     email: "",
     paises: [],
+    exportaServicios: false,
   });
 
   const [partner, setPartner] = React.useState({
@@ -53,7 +58,11 @@ function FormRegistration() {
   // onError: (e) => console.log(e),
 
   const setPaisesHandler = (value) => {
-    setPaises((paises) => [...paises, "," + value]); //paises = [...paises, value];
+    if (paises.includes(value)) {
+      setPaises((paises) => paises.filter((pais) => pais !== value));
+    } else {
+      setPaises((paises) => [...paises, value]);
+    }
   };
 
   const handleClickModalOpen = () => {
@@ -203,18 +212,43 @@ function FormRegistration() {
         <InputLabel>Pais *puede seleccionar más de uno</InputLabel>
         <Select
           id="paises"
-          value={data.countries[0].name}
+          value={paises}
+          multiple
           label="Paises"
+          disabled={form.exportaServicios}
           onChange={(e) => setPaisesHandler(e.target.value)}
+          // defaultValue={
+          //   form.exportaServicios
+          //     ? data.countries.find((pais) => pais.name === "Argentina")
+          //     : null
+          // }
         >
           {data.countries.map((pais, index) => (
             <MenuItem key={index} value={pais.name}>
+              <Checkbox checked={paises.includes(pais.name)} />
               {pais.name}
             </MenuItem>
           ))}
         </Select>
+
+        <FormGroup>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={form.exportaServicios}
+                onChange={(e) => {
+                  setForm({
+                    ...form,
+                    exportaServicios: !form.exportaServicios,
+                  });
+                  setPaisesHandler("Argentina");
+                }}
+              />
+            }
+            label="Exporta Servicios?"
+          />
+        </FormGroup>
       </Box>
-      {paises}
       <div key="9" className={classesForm["form__submit-button"]}>
         <Button key="7" type="submit">
           <h4 className={classesForm["text"]}>REGISTRAR</h4>
