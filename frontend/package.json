@@ -15,7 +15,10 @@
     "@material-ui/lab": "^4.0.0-alpha.60",
     "@material-ui/styled-engine-sc": "^5.0.0-beta.5",
     "@material-ui/styles": "^4.11.4",
+<<<<<<< HEAD
     "@mui/icons-material": "^5.0.3",
+=======
+>>>>>>> 2cd1ce2 (Frontend formulario (#1))
     "@mui/lab": "^5.0.0-alpha.49",
     "@mui/material": "^5.0.2",
     "date-fns": "^2.24.0",
