@@ -6,7 +6,6 @@ import InputLabel from "@mui/material/InputLabel";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import Checkbox from "@mui/material/Checkbox";
-import ListItemText from "@mui/material/ListItemText";
 import FormGroup from "@mui/material/FormGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import LocalizationProvider from "@mui/lab/LocalizationProvider";
@@ -21,7 +20,8 @@ import DialogTitle from "@mui/material/DialogTitle";
 
 import { useQuery } from "@apollo/client";
 import { GET_COUNTRIES } from "../../graphql/query";
-import { colors } from "@mui/material";
+
+import { validateForm } from "../../helpers/validateForm";
 
 function FormRegistration() {
   const classesForm = useStyles();
@@ -51,17 +51,19 @@ function FormRegistration() {
 
   const [aporteTotal, setAporteTotal] = React.useState(0);
 
+  const [partners, setPartners] = React.useState([]);
+
   const { data, loading } = useQuery(GET_COUNTRIES);
   if (loading) {
     return <p>Loading...</p>;
   }
-  // onError: (e) => console.log(e),
 
   const setPaisesHandler = (value) => {
-    if (paises.includes(value)) {
-      setPaises((paises) => paises.filter((pais) => pais !== value));
+    const paisUlt = value?.pop();
+    if (paises.includes(paisUlt)) {
+      setPaises([...paises.filter((pais) => pais !== paisUlt)]);
     } else {
-      setPaises((paises) => [...paises, value]);
+      setPaises([...paises, paisUlt]);
     }
   };
 
@@ -75,7 +77,15 @@ function FormRegistration() {
 
   const onSubmitHandler = (e) => {
     e.preventDefault();
-    console.log(form);
+    form.socios = [...partners];
+    form.paises = paises.length ? [...paises] : ["Argentina"];
+    console.log(form.paises);
+    if (validateForm(form) && aporteTotal === 100) {
+      console.log(form);
+      //formatea y hace la query al back
+    } else {
+      console.log("error"); //msj de error
+    }
   };
 
   const handleChange = (newValue) => {
@@ -84,10 +94,9 @@ function FormRegistration() {
   };
 
   const addPartner = (partner) => {
-    // chequear porcentaje al 100% . no debe superarlo
     if (aporteTotal + parseInt(partner.porcentaje) <= 100) {
       setAporteTotal(aporteTotal + parseInt(partner.porcentaje));
-      form.socios.push(partner);
+      setPartners([...partners, partner]);
     }
   };
 
@@ -96,12 +105,26 @@ function FormRegistration() {
     handleModalClose();
   };
 
-  const listPartners = form?.socios?.map((socio, index) => {
+  function deletePartner(socio) {
+    setAporteTotal(aporteTotal - parseInt(socio.porcentaje));
+    setPartners((partners) => partners.filter((partner) => partner !== socio));
+  }
+
+  const listPartners = partners.map((socio, index) => {
     return (
-      <li key={index}>
+      <li key={index} className={classesForm.socio}>
         {`
         ${socio.apellido}, ${socio.nombres}. Aporte: ${socio.porcentaje} %
         `}
+
+        <Button
+          variant="outlined"
+          onClick={() => {
+            deletePartner(socio);
+          }}
+        >
+          Eliminar
+        </Button>
       </li>
     );
   });
@@ -168,15 +191,15 @@ function FormRegistration() {
             </DialogActions>
           </Dialog>
         </div>
-        <ul>{listPartners}</ul>
+
+        <ul className={classesForm["socios"]}>{listPartners}</ul>
 
         <TextField
           select
           label="Apoderado"
           onChange={(e) => setForm({ ...form, apoderado: e.target.value })}
-          defaultValue={form.apoderado ? "" : ""}
         >
-          {form.socios.map((socio, index) => (
+          {partners.map((socio, index) => (
             <MenuItem value={socio} key={index}>
               {`${socio.apellido} ${socio.nombres}`}
             </MenuItem>
@@ -217,11 +240,6 @@ function FormRegistration() {
           label="Paises"
           disabled={form.exportaServicios}
           onChange={(e) => setPaisesHandler(e.target.value)}
-          // defaultValue={
-          //   form.exportaServicios
-          //     ? data.countries.find((pais) => pais.name === "Argentina")
-          //     : null
-          // }
         >
           {data.countries.map((pais, index) => (
             <MenuItem key={index} value={pais.name}>

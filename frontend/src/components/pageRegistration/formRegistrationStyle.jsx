@@ -23,7 +23,11 @@ const useStyles = makeStyles({
       width: "20%",
     },
   },
-
+  socios: {
+    display: "flex",
+    justifyContent: "flex-start",
+    flexDirection: "column",
+  },
   text: {
     padding: "5px",
 
