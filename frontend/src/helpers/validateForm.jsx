@@ -3,7 +3,7 @@ export const validateForm = (form) => {
 
   if (form.apoderado === "") return false;
 
-  //   if (form.estatuto === "") return false; // PDF
+  if (form.estatuto === "") return false; // PDF
 
   if (form.domicilioLegal === "") return false;
 
@@ -12,6 +12,4 @@ export const validateForm = (form) => {
   if (form.email === "") return false;
 
   return true;
-
-  // fechaCreacion ¿exportaServicios?
 };
