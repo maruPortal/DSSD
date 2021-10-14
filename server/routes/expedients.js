@@ -112,6 +112,7 @@ files: {
 router.post("/", async (req, res) => {
   try {
     let tmpExpedient = { ...req.body };
+
     // validaciones de BE
     tmpExpedient.estatuto = uploadEstatuto(req, req.files.estatuto);
 
@@ -119,18 +120,18 @@ router.post("/", async (req, res) => {
       body: [expedient],
       error,
     } = await supabase.from("expedient").insert([tmpExpedient]);
-
+    console.log(tmpExpedient, expedient);
     if (error) {
       res.status(500).json(error);
       return;
     }
 
-    const responseBonita = await setExpedientToBonita(expedient);
+    // const responseBonita = await setExpedientToBonita(expedient);
 
-    if (!responseBonita) {
-      res.status(500).json({ responseBonita });
-      return;
-    }
+    // if (!responseBonita) {
+    //   res.status(500).json({ responseBonita });
+    //   return;
+    // }
 
     res.json(expedient);
   } catch (error) {
