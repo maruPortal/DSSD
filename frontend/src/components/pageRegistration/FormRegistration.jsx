@@ -83,29 +83,30 @@ function FormRegistration() {
     form.socios = [...partners];
     form.paises = paises.length ? [...paises] : ["Argentina"];
     if (validateForm(form) && aporteTotal === 100) {
-      setStateSnackbar({
-        open: true,
-        type: "success",
-        message: "Formulario enviado correctamente",
-      });
-
       let formData = new FormData();
       formData.append("apoderado", form.apoderado);
       formData.append("domicilioLegal", form.domicilioLegal);
       formData.append("domicilioReal", form.domocilioReal);
       formData.append("emailApoderado", form.emailApoderado);
-      // formData.append("estatuto", form.estatuto);
-      // form.socios.forEach((socio) =>
-      //   formData.append("socios", JSON.stringify(socio))
-      // );
-      // form.paises.forEach((pais) => formData.append("paises", pais));
-
+      formData.append("estatuto", form.estatuto);
       formData.append("nombreSociedad", form.nombreSociedad);
+
+      form.socios.forEach((socio) =>
+        formData.append("socios", JSON.stringify(socio))
+      );
+      form.paises.forEach((pais) => formData.append("paises", pais));
+
       const result = await fetch("http://localhost:3000/expedients/", {
         method: "POST",
         body: formData,
       });
+
       console.log(result);
+      setStateSnackbar({
+        open: true,
+        type: "success",
+        message: "Formulario enviado correctamente",
+      });
     } else {
       setStateSnackbar({
         open: true,
