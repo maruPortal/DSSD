@@ -1,5 +1,4 @@
 import React from "react";
-import "./App.css";
 import { Route, Switch, useHistory } from "react-router-dom";
 import FormRegistration from "./components/pageRegistration/FormRegistration";
 import Button from "@mui/material/Button";
@@ -18,7 +17,9 @@ function App() {
     <ApolloProvider client={client}>
       <Switch>
         <Route path={routes.INIT} exact>
-          <Button onClick={goRegistration}>Crear sociedad anonima</Button>
+          <div style={{display:'flex', justifyContent:'center', height: '100vh', alignItems: 'center'}}>
+            <Button onClick={goRegistration}>Crear sociedad anonima</Button>
+          </div>
         </Route>
         <Route path={routes.REGISTRATION}>
           <FormRegistration />

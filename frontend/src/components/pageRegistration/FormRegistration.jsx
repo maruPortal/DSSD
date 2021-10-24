@@ -54,7 +54,11 @@ function FormRegistration() {
 
   const { data, loading } = useQuery(GET_COUNTRIES);
   if (loading) {
-    return <p>Loading...</p>;
+    return (
+      <div style={{display:'flex', justifyContent:'center', height: '100vh', alignItems: 'center'}}>
+        <p>Loading...</p>
+      </div>
+    );
   }
 
   const setPaisesHandler = (evento) => {

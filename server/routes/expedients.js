@@ -2,6 +2,7 @@ var express = require("express");
 var router = express.Router();
 const Bonita = require("../model/bonita.js");
 const supabase = require("../helpers/supabase");
+const validateParams = require("../helpers/validateParams");
 
 /**
  * Receives a file (BLOB) returns a public url of that file saved in `public/uploads/estatutos/`
@@ -109,40 +110,138 @@ files: {
   estatuto: FILE
 }
 */
-router.post("/", async (req, res) => {
-  try {
-    let tmpExpedient = { ...req.body };
+router.post(
+  "/",
+  validateParams([
+    {
+      param_key: "nombreSociedad",
+      type: "string",
+      required: true,
+      validator_functions: [
+        {
+          fn: (param) => param !== "",
+          message: `Missing parameter nombreSociedad`,
+        },
+      ],
+    },
+    {
+      param_key: "apoderado",
+      type: "string",
+      required: true,
+      validator_functions: [
+        {
+          fn: (param) => param !== "",
+          message: `Missing parameter apoderado`,
+        },
+      ],
+    },
+    {
+      param_key: "domicilioLegal",
+      type: "string",
+      required: true,
+      validator_functions: [
+        {
+          fn: (param) => param !== "",
+          message: `Missing parameter domicilioLegal`,
+        },
+      ],
+    },
+    {
+      param_key: "domicilioReal",
+      type: "string",
+      required: true,
+      validator_functions: [
+        {
+          fn: (param) => param !== "",
+          message: `Missing parameter domicilioReal`,
+        },
+      ],
+    },
+    {
+      param_key: "emailApoderado",
+      type: "string",
+      required: true,
+      validator_functions: [
+        {
+          fn: (param) => param !== "",
+          message: `Missing parameter emailApoderado`,
+        },
+      ],
+    },
+    {
+      param_key: "socios",
+      type: "object",
+      required: true,
+      validator_functions: [
+        {
+          fn: (param) => {
+            const sumPercentAssociates = param
+              .map(JSON.parse)
+              .reduce(
+                (acc, associate) => acc + Number(associate.porcentajeAporte),
+                0
+              );
+            return sumPercentAssociates === 100;
+          },
+          message: `Field porcentajeAporte on socios param should summarize 100%`,
+        },
+      ],
+    },
+    {
+      param_key: "estatuto",
+      required: true,
+      req_attr: "files",
+      type: "object",
+      validator_functions: [
+        {
+          fn: (param) => {
+            const validMimeTypes = [
+              "application/pdf",
+              "application/vnd.oasis.opendocument.text",
+              "application/msword",
+            ];
+            return validMimeTypes.includes(param.mimetype);
+          },
+          message: `Missing parameter emailApoderado`,
+        },
+      ],
+    },
+  ]),
+  async (req, res) => {
+    try {
+      let tmpExpedient = { ...req.body };
 
-    tmpExpedient.estatuto = uploadEstatuto(req, req.files.estatuto);
+      tmpExpedient.estatuto = uploadEstatuto(req, req.files.estatuto);
 
-    tmpExpedient.socios = Array.isArray(tmpExpedient.socios)
-      ? tmpExpedient.socios
-      : [tmpExpedient.socios];
+      tmpExpedient.socios = Array.isArray(tmpExpedient.socios)
+        ? tmpExpedient.socios
+        : [tmpExpedient.socios];
 
-    tmpExpedient.paises = Array.isArray(tmpExpedient.paises)
-      ? tmpExpedient.paises
-      : [tmpExpedient.paises];
+      tmpExpedient.paises = Array.isArray(tmpExpedient.paises)
+        ? tmpExpedient.paises
+        : [tmpExpedient.paises];
 
-    const {
-      body: [expedient],
-      error,
-    } = await supabase.from("expedient").insert([tmpExpedient]);
-    if (error) {
-      res.status(500).json(error);
-      return;
+      const {
+        body: [expedient],
+        error,
+      } = await supabase.from("expedient").insert([tmpExpedient]);
+      if (error) {
+        res.status(500).json(error);
+        return;
+      }
+
+      const responseBonita = await setExpedientToBonita(expedient);
+      if (!responseBonita) {
+        res.status(500).json({ responseBonita });
+        return;
+      }
+
+      res.json(expedient);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
-
-    const responseBonita = await setExpedientToBonita(expedient);
-    if (!responseBonita) {
-      res.status(500).json({ responseBonita });
-      return;
-    }
-
-    res.json(expedient);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
   }
-});
+);
 
 /* 
   // Note: Beware to set encType="multipart/form-data" on the <form />
