@@ -22,9 +22,9 @@ router.get("/test", async (req, res, next) => {
     let bonitaUser = await Bonita.login();
     await bonitaUser.getProcessID("Sociedades");
     const responseBonita = await bonitaUser.postCase(newExpedient);
-    let userMesa = await bonitaUser.getUserID("mesaentradas1");
-    let currentTask = await bonitaUser.getIdTask();
-    await bonitaUser.assignCase(userMesa, currentTask);
+    // let userMesa = await bonitaUser.getUserID("mesaentradas1");
+    // let currentTask = await bonitaUser.getIdTask();
+    // await bonitaUser.assignCase(userMesa, currentTask);
     //await bonitaUser.executeTask(currentTask);
 
     res.json(responseBonita);
@@ -33,21 +33,21 @@ router.get("/test", async (req, res, next) => {
   }
 });
 
-// router.get("/efectuarValidacion", async (req, res) => {
-//   const setValidacion = [{ name: "esValidoEnMesa", value: true }];
-//   let bonitaUser = await Bonita.login();
-//   // await bonitaUser.getProcessID("Sociedades");
-//   const response = await bonitaUser.postCase(setValidacion);
-//   console.log(
-//     "🚀 ~ file: expedients.js ~ line 77 ~ router.get ~ response",
-//     response
-//   );
+router.get("/efectuarValidacion", async (req, res) => {
+  const setValidacion = [{ name: "esValidoEnMesa", value: true }];
+  let bonitaUser = await Bonita.login();
+  // await bonitaUser.getProcessID("Sociedades");
+  const response = await bonitaUser.postCase(setValidacion);
+  console.log(
+    "🚀 ~ file: expedients.js ~ line 77 ~ router.get ~ response",
+    response
+  );
 
-//   // let userMesa = await bonitaUser.getUserID("mesaentradas1");
-//   // let currentTask = await bonitaUser.getIdTask();
-//   // await bonitaUser.executeTask(currentTask);
+  // let userMesa = await bonitaUser.getUserID("mesaentradas1");
+  // let currentTask = await bonitaUser.getIdTask();
+  // await bonitaUser.executeTask(currentTask);
 
-//   res.json(setValidacion);
-// });
+  res.json(setValidacion);
+});
 
 module.exports = router;
