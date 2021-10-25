@@ -168,25 +168,25 @@ router.post(
         },
       ],
     },
-    {
-      param_key: "socios",
-      type: "object",
-      required: true,
-      validator_functions: [
-        {
-          fn: (param) => {
-            const sumPercentAssociates = param
-              .map(JSON.parse)
-              .reduce(
-                (acc, associate) => acc + Number(associate.porcentajeAporte),
-                0
-              );
-            return sumPercentAssociates === 100;
-          },
-          message: `Field porcentajeAporte on socios param should summarize 100%`,
-        },
-      ],
-    },
+    // {
+    //   param_key: "socios",
+    //   type: "object",
+    //   required: true,
+    //   validator_functions: [
+    //     {
+    //       fn: (param) => {
+    //         const sumPercentAssociates = param
+    //           .map(JSON.parse)
+    //           .reduce(
+    //             (acc, associate) => acc + Number(associate.porcentajeAporte),
+    //             0
+    //           );
+    //         return sumPercentAssociates === 100;
+    //       },
+    //       message: `Field porcentajeAporte on socios param should summarize 100%`,
+    //     },
+    //   ],
+    // },
     {
       param_key: "estatuto",
       required: true,

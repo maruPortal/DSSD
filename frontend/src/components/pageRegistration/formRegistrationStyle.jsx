@@ -37,6 +37,10 @@ const useStyles = makeStyles({
     lineHeight: "13px",
     letterSpacing: "0.60px",
     color: "rgba(0, 0, 0, 0.54)",
+
+    display:'flex', 
+    justifyContent:'center',
+    alignItems: 'center'
   },
   form__line: {
     width: "100%",
