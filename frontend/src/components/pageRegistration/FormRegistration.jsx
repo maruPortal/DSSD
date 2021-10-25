@@ -3,6 +3,7 @@ import useStyles from "./formRegistrationStyle";
 import Button from "@mui/material/Button";
 import MenuItem from "@mui/material/MenuItem";
 import InputLabel from "@mui/material/InputLabel";
+import FormControl from "@mui/material/FormControl";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import Checkbox from "@mui/material/Checkbox";
@@ -30,6 +31,8 @@ function FormRegistration() {
     emailApoderado: "",
     paises: [],
   });
+
+  const [errorForm, setErrorForm] = React.useState([]);
 
   const [partner, setPartner] = React.useState({
     nombreSocio: "",
@@ -82,6 +85,8 @@ function FormRegistration() {
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
+    setErrorForm(null);
+
     form.socios = [...partners];
     form.paises = paises.length ? [...paises] : ["Argentina"];
     if (validateForm(form) && aporteTotal === 100) {
@@ -93,22 +98,23 @@ function FormRegistration() {
       formData.append("estatuto", form.estatuto);
       formData.append("nombreSociedad", form.nombreSociedad);
 
-      form.socios.forEach((socio) =>
-        formData.append("socios", JSON.stringify(socio))
-      );
+      form.socios.forEach((socio) => formData.append("socios", JSON.stringify(socio)) );
       form.paises.forEach((pais) => formData.append("paises", pais));
 
       const result = await fetch("http://localhost:3000/expedients/", {
         method: "POST",
         body: formData,
       });
-
-      console.log(result);
-      setStateSnackbar({
-        open: true,
-        type: "success",
-        message: "Formulario enviado correctamente",
-      });
+      const jsonResult = await result.json();
+      if(result.status === 400) {
+        setErrorForm(jsonResult);
+      } else {
+        setStateSnackbar({
+          open: true,
+          type: "success",
+          message: "Formulario enviado correctamente",
+        });
+      }
     } else {
       setStateSnackbar({
         open: true,
@@ -156,11 +162,12 @@ function FormRegistration() {
 
   return (
     <>
+      <h2 className={classesForm["text"]}>Registro de Sociedad Anonima</h2>
       <form onSubmit={onSubmitHandler} className={classesForm.form}>
-        <h2 className={classesForm["text"]}>Registro de Sociedad Anonima</h2>
         <Box
           sx={{
             "& .MuiTextField-root": { margin: "2%", width: "90%" },
+            "& .customFieldBox": { margin: "2%", width: "90%" },
           }}
           noValidate
           autoComplete="off"
@@ -171,20 +178,23 @@ function FormRegistration() {
             onChange={(e) =>
               setForm({ ...form, nombreSociedad: e.target.value })
             }
+            error={errorForm?.key ==='nombreSociedad'}
+            helperText={errorForm?.key ==='nombreSociedad'? errorForm?.validation:null}
           />
 
-          <div>
+          <div className="customFieldBox">
             <Button onClick={handleClickModalOpen}>Agregar Socio</Button>
+
             <Dialog open={modalOpen} onClose={handleModalClose}>
               <DialogTitle>
-                <h4 className={classesForm["text"]}>Agregar socio</h4>
+                <span className={classesForm["text"]}>Agregar socio</span>
               </DialogTitle>
               <DialogContent>
                 <TextField
                   id="nombreSocio"
                   label="Nombre Completo"
                   onChange={(e) =>
-                    setPartner({ ...partner, nombreSocio: e.target.value })
+                    setPartner(p=> ({ ...p, nombreSocio: e.target.value }))
                   }
                 />
 
@@ -193,7 +203,7 @@ function FormRegistration() {
                   label="Porcentaje de aportes"
                   type="number"
                   onChange={(e) =>
-                    setPartner({ ...partner, porcentajeAporte: e.target.value })
+                    setPartner(p=> ({ ...p, porcentajeAporte: e.target.value }))
                   }
                 />
               </DialogContent>
@@ -204,12 +214,14 @@ function FormRegistration() {
             </Dialog>
           </div>
 
-          <ul className={classesForm["socios"]}>{listPartners}</ul>
+          { partners.length > 0 && <ul className={classesForm["socios"]}>{listPartners}</ul> }
 
           <TextField
             select
             label="Apoderado"
             onChange={(e) => setForm({ ...form, apoderado: e.target.value })}
+            error={['socios', 'apoderado'].includes(errorForm?.key)}
+            helperText={['socios', 'apoderado'].includes(errorForm?.key)? errorForm?.validation:null}
           >
             {partners.map((socio, index) => (
               <MenuItem value={socio.nombreSocio} key={index}>
@@ -225,6 +237,8 @@ function FormRegistration() {
             onChange={(e) => setForm({ ...form, estatuto: e.target.files[0] })}
             focused
             inputProps={{ accept: ".pdf, .docx, .odt" }}
+            error={errorForm?.key ==='estatuto'}
+            helperText={errorForm?.key ==='estatuto'? errorForm?.validation:null}
           />
 
           <TextField
@@ -233,6 +247,8 @@ function FormRegistration() {
             onChange={(e) =>
               setForm({ ...form, domicilioLegal: e.target.value })
             }
+            error={errorForm?.key ==='domicilioLegal'}
+            helperText={errorForm?.key ==='domicilioLegal'? errorForm?.validation:null}
           />
           <TextField
             id="DomicilioReal"
@@ -240,6 +256,8 @@ function FormRegistration() {
             onChange={(e) =>
               setForm({ ...form, domocilioReal: e.target.value })
             }
+            error={errorForm?.key ==='domicilioReal'}
+            helperText={errorForm?.key ==='domicilioReal'? errorForm?.validation:null}
           />
 
           <TextField
@@ -249,24 +267,31 @@ function FormRegistration() {
             onChange={(e) =>
               setForm({ ...form, emailApoderado: e.target.value })
             }
+            error={errorForm?.key ==='emailApoderado'}
+            helperText={errorForm?.key ==='emailApoderado'? errorForm?.validation:null}
           />
-          <InputLabel>Pais *puede seleccionar más de uno</InputLabel>
-          <Select
-            id="paises"
-            value={paises}
-            multiple
-            label="Paises"
-            disabled={form.exportaServicios}
-            renderValue={(selected) => selected.join(",")}
-            onChange={(e) => setPaisesHandler(e.target.value)}
-          >
-            {data.countries.map((pais, index) => (
-              <MenuItem key={index} value={pais.name}>
-                <Checkbox checked={paises.includes(pais.name)} />
-                {pais.name}
-              </MenuItem>
-            ))}
-          </Select>
+          <div className="customFieldBox">
+            <FormControl sx={{ width: "100%" }}>
+              <InputLabel>Pais (puede seleccionar más de uno)</InputLabel>
+              <Select
+                id="paises"
+                value={paises}
+                multiple
+                label="Paises"
+                disabled={form.exportaServicios}
+                renderValue={(selected) => selected.join(",")}
+                onChange={(e) => setPaisesHandler(e.target.value)}
+                error={errorForm?.key === 'paises'}
+              >
+                {data.countries.map((pais, index) => (
+                  <MenuItem key={pais.code} value={pais.name}>
+                    <Checkbox checked={paises.includes(pais.name)} />
+                    {pais.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
         </Box>
         <div key="9" className={classesForm["form__submit-button"]}>
           <Button key="7" type="submit">
