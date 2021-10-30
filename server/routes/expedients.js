@@ -62,9 +62,10 @@ const setExpedientToBonita = async (expedient) => {
   let bonitaUser = await Bonita.login();
   await bonitaUser.getProcessID("Sociedades");
   const responseBonita = await bonitaUser.postCase(transformedExpedient);
-  let userMesa = await bonitaUser.getUserID("mesaentradas1");
-  let currentTask = await bonitaUser.getIdTask();
-  await bonitaUser.assignCase(userMesa, currentTask);
+  // vvv THIS IS NOT OK vvv
+  // let userMesa = await bonitaUser.getUserID("mesaentradas1");
+  // let currentTask = await bonitaUser.getIdTask();
+  // await bonitaUser.assignCase(userMesa, currentTask);
   return responseBonita;
 };
 
@@ -73,14 +74,54 @@ const setExpedientToBonita = async (expedient) => {
  * NOTE query to supabase
  */
 router.get("/", async (req, res, next) => {
+  let filters = [];
+  if(Object.keys(req.query).length > 0) {
+    Object.keys(req.query).map(key=> {
+      filters.push({key, val: req.query[key]});
+    });
+  }
+ 
+  const supabaseQuery = supabase
+  .from("expedient")
+  .select("*")
+
+  if(filters.length> 0) {
+    filters.forEach(filter=> {
+      supabaseQuery.eq(filter.key, filter.val)
+    })
+  }
+
   try {
-    let { data: expedients, error } = await supabase
-      .from("expedient")
-      .select("*");
+    let { data: expedients, error } = await supabaseQuery;
     if (error) {
       throw error;
     }
     res.json(expedients);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+/**
+ * GET localhost:3000/expedients/50
+ * NOTE query to supabase
+ */
+ router.get("/:id", async (req, res, next) => {
+  try {
+    let { data: expedients, error } = await supabase
+      .from("expedient")
+      .select("*")
+      .eq('id', req.params.id);
+
+    if (error) {
+      throw error;
+    }
+    if(expedients.length>0){
+      res.json(expedients);
+    } else {
+      res.status(404).json(expedients);
+    }
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -243,25 +284,32 @@ router.post(
   }
 );
 
-/* 
-  // Note: Beware to set encType="multipart/form-data" on the <form />
-  // POST localhost:3000/expedients/upload-estatuto
-  // body { estatuto: FILE }
-  router.post("/upload-estatuto", async (req, res) => {
-    try {
-      if (!req.files) {
-        res.json({ status: false, message: "No file uploaded", publicURL: null });
-      } else {
-        res.json({
-          status: true,
-          message: "File uploaded",
-          publicURL: uploadEstatuto(req, req.files.estatuto),
-        });
-      }
-    } catch (err) {
-      console.log(err);
-      res.status(500).json(err);
-    }
-  });
+/**
+ * PUT localhost:3000/expedients/50
+ * NOTE updates expedient into Supabase
+ * body:
+  { estado: 0 }
  */
+ router.put("/:id", async (req, res, next) => {
+  try {
+    let { data: expedients, error } = await supabase
+      .from("expedient")
+      .update(req.body)
+      .eq('id', req.params.id);
+
+    if (error) {
+      throw error;
+    }
+    if(expedients.length===0){
+      res.status(404).json(expedients);
+      return;
+    }
+
+    res.json(expedients);
+    // TODO:: send data to bonita
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;
