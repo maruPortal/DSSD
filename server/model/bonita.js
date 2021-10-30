@@ -31,20 +31,25 @@ class Bonita {
     };
   }
 
-  static async login() {
+  static async login(username = USERNAME, password = PASSWORD) {
     let params = new URLSearchParams();
     let method = "POST";
-    params.append("username", USERNAME);
-    params.append("password", PASSWORD);
+    params.append("username", username);
+    params.append("password", password);
     params.append("redirect", false);
     try {
       const res = await fetch(`${url}loginservice`, {
         method: method,
         body: params,
       });
-      return new Bonita(res);
+
+      if(res.status === 401) {
+        throw { status: res.status, statusText: res.statusText }
+      }
+
+      return {bonitaUser: new Bonita(res)};
     } catch (error) {
-      return error;
+      return {error};
     }
   }
   ///Metodos Procesos

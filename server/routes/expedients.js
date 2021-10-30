@@ -59,7 +59,7 @@ const setExpedientToBonita = async (expedient) => {
     };
   });
 
-  let bonitaUser = await Bonita.login();
+  let {bonitaUser} = await Bonita.login();
   await bonitaUser.getProcessID("Sociedades");
   const responseBonita = await bonitaUser.postCase(transformedExpedient);
   // vvv THIS IS NOT OK vvv
@@ -243,7 +243,7 @@ router.post(
             ];
             return validMimeTypes.includes(param.mimetype);
           },
-          message: `Missing parameter emailApoderado`,
+          message: `Invalid parameter emailApoderado`,
         },
       ],
     },
