@@ -90,6 +90,70 @@ class Bonita {
     }).then((res) => res.json());
   }
 
+  //https://documentation.bonitasoft.com/bonita/2021.1/bpm-api#_search_for_a_case
+  // de aca se obtiene el caseID para getActivitiesOfCase y updateCaseVariable
+  async getAllCases(name) {
+    const res = await fetch(`${url}API/bpm/case?f=name=${name}`, {
+      headers: this.headers,
+      method: "GET",
+    });
+    return res.json();
+  }
+
+  //https://documentation.bonitasoft.com/bonita/2021.1/bpm-api#_search_among_activities
+  // de aca se toma el ID de la tarea/actividad para enviar al metodo completeTask
+  // 1 rootCaseID tiene solo 1 actividad en curso
+  async getActivitiesOfCase(caseId) {
+    const res = await fetch(`${url}API/bpm/activity?f=rootCaseId=${caseId}&d=assigned_id`, {
+      headers: this.headers,
+      method: "GET",
+    });
+    return res.json();
+  }
+
+  //https://documentation.bonitasoft.com/bonita/2021.1/bpm-api#_update_a_task
+  async completeTask(taskId) {
+    const res = await fetch(`${url}/API/bpm/task/${taskId}`, {
+      headers: this.headers,
+      method: "PUT",
+      body: { "state": "completed" }
+    });
+    return res.json();
+  }
+
+
+  // https://documentation.bonitasoft.com/bonita/2021.1/bpm-api#_update_a_case_variable
+  updateCaseVariable({caseId, variableName, value}) {
+    let javaType;
+
+    switch (true) {
+      case (typeof value === 'boolean'):
+        javaType = 'java.lang.Boolean';
+        break;
+      case (Number.isInteger(value)):
+        javaType = 'java.lang.Integer';
+        break;
+      case (/^\d+\.\d+$/.test(value)):
+        javaType='java.lang.Long';
+        break;
+        case (Date.parse(value)):
+          javaType='java.util.Date';
+          break;
+      default:
+        javaType='java.lang.String';
+        break;
+    }
+
+    return fetch(`${url}API/bpm/caseVariable/${caseId}/${variableName}`, {
+      headers: this.headers,
+      method: "PUT",
+      body: {
+        type: javaType,
+        value: `${value}`
+      },
+    }).then((res) => res.json());
+  }
+
   /*
 Formato, definicion del proceso y luego variables con clave name y value
 {
@@ -150,22 +214,22 @@ el 102 es la usuario de la mesa de entrada
       }),
     });
   }
-  /*
-finalizo instancia
-POST
-http://localhost:8080/bonita/API/bpm/userTask/60064_idTask/execution
-esto hace que pase a la siguiente etapa
+//   /*
+// finalizo instancia
+// POST
+// http://localhost:8080/bonita/API/bpm/userTask/60064_idTask/execution
+// esto hace que pase a la siguiente etapa
 
-OTROS ENDPOINTS DE INTERES
-API/identity/user?p=0&c=5 me trae los usuarios, asi me quedo con su id
-*/
+// OTROS ENDPOINTS DE INTERES
+// API/identity/user?p=0&c=5 me trae los usuarios, asi me quedo con su id
+// */
 
-  executeTask(idTask) {
-    return fetch(`${url}API/bpm/userTask/${idTask}/execution`, {
-      headers: this.headers,
-      method: "POST",
-    });
-  }
+//   executeTask(idTask) {
+//     return fetch(`${url}API/bpm/userTask/${idTask}/execution`, {
+//       headers: this.headers,
+//       method: "POST",
+//     });
+//   }
   ///Metodos Usuarios
 
   getAllUsers() {
