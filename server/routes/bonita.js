@@ -16,9 +16,7 @@ router.post("/loginAs", async (req, res) => {
     ...bonitaUser,
     username,
   };
-  const token = jwt.sign(payload, "BONITA_SECRET_KEY", {
-    expiresIn: 1440,
-  });
+  const token = jwt.sign(payload, "BONITA_SECRET_KEY", { expiresIn: '7d' });
   res.json({ token });
 });
 

@@ -94,10 +94,10 @@ class Bonita {
   // de aca se obtiene el caseID para getActivitiesOfCase y updateCaseVariable
   async getAllCases(name) {
     const res = await fetch(`${url}API/bpm/case?f=name=${name}`, {
-      headers: this.headers,
-      method: "GET",
+      headers: this.headers
     });
-    return res.json();
+    const json = await res.json();
+    return {json, error: {status: res.status, statusText: res.statusText}};
   }
 
   //https://documentation.bonitasoft.com/bonita/2021.1/bpm-api#_search_among_activities
@@ -105,25 +105,35 @@ class Bonita {
   // 1 rootCaseID tiene solo 1 actividad en curso
   async getActivitiesOfCase(caseId) {
     const res = await fetch(`${url}API/bpm/activity?f=rootCaseId=${caseId}&d=assigned_id`, {
-      headers: this.headers,
-      method: "GET",
+      headers: this.headers
     });
     return res.json();
   }
 
   //https://documentation.bonitasoft.com/bonita/2021.1/bpm-api#_update_a_task
   async completeTask(taskId) {
-    const res = await fetch(`${url}/API/bpm/task/${taskId}`, {
+    const res = await fetch(`${url}API/bpm/task/${taskId}`, {
       headers: this.headers,
       method: "PUT",
-      body: { "state": "completed" }
+      body: JSON.stringify({ "state": "completed" })
     });
-    return res.json();
+    const error = {status: res.status, statusText: res.statusText};
+    const json = res.status === 200 ? {statusText: res.statusText}: null;
+    return {json, error};
+  }
+
+  // https://documentation.bonitasoft.com/bonita/2021.1/bpm-api#_get_a_case_variable
+  async getCaseVariable(caseId, variableName) {
+    const res = await fetch(`${url}API/bpm/caseVariable/${caseId}/${variableName}`, {
+      headers: this.headers,
+    });
+    const json = await res.json();
+    return {json};
   }
 
 
   // https://documentation.bonitasoft.com/bonita/2021.1/bpm-api#_update_a_case_variable
-  updateCaseVariable({caseId, variableName, value}) {
+  async updateCaseVariable(caseId, variableName, value) {
     let javaType;
 
     switch (true) {
@@ -144,56 +154,15 @@ class Bonita {
         break;
     }
 
-    return fetch(`${url}API/bpm/caseVariable/${caseId}/${variableName}`, {
+    const res = await fetch(`${url}API/bpm/caseVariable/${caseId}/${variableName}`, {
       headers: this.headers,
       method: "PUT",
-      body: {
-        type: javaType,
-        value: `${value}`
-      },
-    }).then((res) => res.json());
+      body: JSON.stringify({ type: javaType, value: `${value}` }),
+    });
+    const error = {status: res.status, statusText: res.statusText};
+    const json = {statusText: res.statusText};
+    return {json, error};
   }
-
-  /*
-Formato, definicion del proceso y luego variables con clave name y value
-{
-  "processDefinitionId":"6877964967564468572",
-  "variables":[
-    {
-      "name":"apoderado",
-      "value":"pepito"
-    },
-    {
-     "name":"domicilioLegal",
-      "value":"calle"
-    },
-    {
-      "name":"domicilioReal",
-      "value":"pepito"
-    },
-    {
-      "name":"emailApoderado",
-      "value":"unEmail"
-    },
-    {
-     "name":"estatuto",
-      "value":"miestatuto"
-    },
-    {
-      "name":"nombreSociedad",
-      "value":"unNombre"
-    },
-     {
-     "name":"paises",
-      "value":"mis paises"
-    },
-    {
-      "name":"socios",
-      "value":"missocios"
-    }
-  ]
-}
-  */
 
   /*
 despues de instanciar asigno

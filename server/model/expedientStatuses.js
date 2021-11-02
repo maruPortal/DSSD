@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   EXPIRADO: -5,
   DESAPROBADO_EN_LEGALES:-2,
   DESAPROBADO_EN_MESA:-1,
