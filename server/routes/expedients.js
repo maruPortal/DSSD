@@ -120,7 +120,7 @@ const notifyToApoderado = async (
 
     const newState =
       key === "esValidoEnMesa"
-        ? expedientStatuses.APROBADO_EN_MESA
+        ? expedientStatuses.NUEVO_EN_LEGALES
         : expedientStatuses.APROBADO_EN_LEGALES;
     // actualiza el estado del expediente en Supabase
     let { error } = await supabase
