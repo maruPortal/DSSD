@@ -61,7 +61,7 @@ const setExpedientToBonita = async (expedient) => {
     };
   });
 
-  let {bonitaUser} = await Bonita.login();
+  let { bonitaUser } = await Bonita.login();
   await bonitaUser.getProcessID("Sociedades");
   const responseBonita = await bonitaUser.postCase(transformedExpedient);
   // vvv THIS IS NOT OK vvv
@@ -77,20 +77,18 @@ const setExpedientToBonita = async (expedient) => {
  */
 router.get("/", async (req, res, next) => {
   let filters = [];
-  if(Object.keys(req.query).length > 0) {
-    Object.keys(req.query).map(key=> {
-      filters.push({key, val: req.query[key]});
+  if (Object.keys(req.query).length > 0) {
+    Object.keys(req.query).map((key) => {
+      filters.push({ key, val: req.query[key] });
     });
   }
- 
-  const supabaseQuery = supabase
-  .from("expedient")
-  .select("*")
 
-  if(filters.length> 0) {
-    filters.forEach(filter=> {
-      supabaseQuery.eq(filter.key, filter.val)
-    })
+  const supabaseQuery = supabase.from("expedient").select("*");
+
+  if (filters.length > 0) {
+    filters.forEach((filter) => {
+      supabaseQuery.eq(filter.key, filter.val);
+    });
   }
 
   try {
@@ -104,22 +102,21 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-
 /**
  * GET localhost:3000/expedients/50
  * NOTE query to supabase
  */
- router.get("/:id", async (req, res, next) => {
+router.get("/:id", async (req, res, next) => {
   try {
     let { data: expedients, error } = await supabase
       .from("expedient")
       .select("*")
-      .eq('id', req.params.id);
+      .eq("id", req.params.id);
 
     if (error) {
       throw error;
     }
-    if(expedients.length>0){
+    if (expedients.length > 0) {
       res.json(expedients);
     } else {
       res.status(404).json(expedients);
@@ -292,17 +289,17 @@ router.post(
  * body:
   { estado: 0 }
  */
- router.put("/:id", async (req, res, next) => {
+router.put("/:id", async (req, res, next) => {
   try {
     let { data: expedients, error } = await supabase
       .from("expedient")
       .update(req.body)
-      .eq('id', req.params.id);
+      .eq("id", req.params.id);
 
     if (error) {
       throw error;
     }
-    if(expedients.length===0){
+    if (expedients.length === 0) {
       res.status(404).json(expedients);
       return;
     }
@@ -314,64 +311,110 @@ router.post(
   }
 });
 
+/** POST localhost:3000/expedients/validarMesa (OPCIONAL: ?submitAndContinue=true)
+ * body:
+ */
+router.post(
+  "/asignarAUsuario",
+  jwtVerify,
+  tokenToBonitaInstance,
+  async (rq, res) => {
+    const cases = await rq.__bonitaInstance.getAllCases("Sociedades");
+    const caseId = cases.json[cases.json.length - 1].id;
+
+    let userId = await rq.__bonitaInstance.getUserID(
+      rq.__jwtUserPayload.username
+    );
+    const activities = await rq.__bonitaInstance.getActivitiesOfCase(caseId);
+    const activityId = activities[0].id;
+    const assignCaseRes = await rq.__bonitaInstance.assignCase(
+      userId,
+      activityId
+    );
+
+    res.send(assignCaseRes.json);
+  }
+);
 
 /** POST localhost:3000/expedients/validarMesa (OPCIONAL: ?submitAndContinue=true)
  * body:
     { "valido": true, correcciones: '....'} 
   */
-router.post('/validarMesa',
-jwtVerify,
-tokenToBonitaInstance, 
-async (rq, res) => {
-  const cases = await rq.__bonitaInstance.getAllCases('Sociedades');
-  const caseId = cases.json[cases.json.length-1].id;
-  const updatedVarRes = await rq.__bonitaInstance.updateCaseVariable(caseId, "esValidoEnMesa", rq.body.valido);
+router.post(
+  "/validarMesa",
+  jwtVerify,
+  tokenToBonitaInstance,
+  async (rq, res) => {
+    const cases = await rq.__bonitaInstance.getAllCases("Sociedades");
+    const caseId = cases.json[cases.json.length - 1].id;
+    const updatedVarRes = await rq.__bonitaInstance.updateCaseVariable(
+      caseId,
+      "esValidoEnMesa",
+      rq.body.valido
+    );
 
-  if(!rq.body.valido) {
-    //TODO: Send `correcciones` por email to apoderado
-  }
-
-  if(rq.query.submitAndContinue){
-    // La tarea debe estar asignada a un usuario de lo contrario fallara
-    const activities = await rq.__bonitaInstance.getActivitiesOfCase(caseId);
-    const activityId = activities[0].id;
-    const completeTaskRes = await rq.__bonitaInstance.completeTask(activityId);
-    if(completeTaskRes.error.status === 500) {
-      res.status(500).json({...completeTaskRes.error, statusText: 'Task is not assigned'});
+    if (!rq.body.valido) {
+      //TODO: Send `correcciones` por email to apoderado
     }
+
+    if (rq.query.submitAndContinue) {
+      // La tarea debe estar asignada a un usuario de lo contrario fallara
+      const activities = await rq.__bonitaInstance.getActivitiesOfCase(caseId);
+      const activityId = activities[0].id;
+      const completeTaskRes = await rq.__bonitaInstance.completeTask(
+        activityId
+      );
+      if (completeTaskRes.error.status === 500) {
+        res.status(500).json({
+          ...completeTaskRes.error,
+          statusText: "Task is not assigned",
+        });
+      }
+    }
+
+    res.send(updatedVarRes.json);
   }
-
-  res.send(updatedVarRes.json);
-});
-
+);
 
 /** POST localhost:3000/expedients/validarLegales (OPCIONAL: ?submitAndContinue=true)
  * body:
     { "valido": true, correcciones: '....'} 
   */
-router.post('/validarLegales',
-jwtVerify,
-tokenToBonitaInstance, 
-async (rq, res) => {
-  const cases = await rq.__bonitaInstance.getAllCases('Sociedades');
-  const caseId = cases.json[cases.json.length-1].id;
-  const updatedVarRes = await rq.__bonitaInstance.updateCaseVariable(caseId, "esValidoEnLegales", rq.body.valido);
+router.post(
+  "/validarLegales",
+  jwtVerify,
+  tokenToBonitaInstance,
+  async (rq, res) => {
+    const cases = await rq.__bonitaInstance.getAllCases("Sociedades");
+    const caseId = cases.json[cases.json.length - 1].id;
+    const updatedVarRes = await rq.__bonitaInstance.updateCaseVariable(
+      caseId,
+      "esValidoEnLegales",
+      rq.body.valido
+    );
 
-  if(!rq.body.valido) {
-    //TODO: Send `correcciones` por email to apoderado
-    // TODO: Ejecutar timer de tarea
-  }
-
-  if(rq.query.submitAndContinue){
-    // La tarea debe estar asignada a un usuario de lo contrario fallara
-    const activities = await rq.__bonitaInstance.getActivitiesOfCase(caseId);
-    const activityId = activities[0].id;
-    const completeTaskRes = await rq.__bonitaInstance.completeTask(activityId);
-    if(completeTaskRes.error.status === 500) {
-      res.status(500).json({...completeTaskRes.error, statusText: 'Task is not assigned'});
+    if (!rq.body.valido) {
+      //TODO: Send `correcciones` por email to apoderado
+      // TODO: Ejecutar timer de tarea
     }
-  }
 
-  res.send(updatedVarRes.json);
-});
+    if (rq.query.submitAndContinue) {
+      // La tarea debe estar asignada a un usuario de lo contrario fallara
+      const activities = await rq.__bonitaInstance.getActivitiesOfCase(caseId);
+      const activityId = activities[0].id;
+      const completeTaskRes = await rq.__bonitaInstance.completeTask(
+        activityId
+      );
+      if (completeTaskRes.error.status === 500) {
+        res.status(500).json({
+          ...completeTaskRes.error,
+          statusText: "Task is not assigned",
+        });
+      }
+    }
+
+    res.send(updatedVarRes.json);
+  }
+);
+
 module.exports = router;

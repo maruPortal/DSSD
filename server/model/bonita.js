@@ -43,13 +43,13 @@ class Bonita {
         body: params,
       });
 
-      if(res.status === 401) {
-        throw { status: res.status, statusText: res.statusText }
+      if (res.status === 401) {
+        throw { status: res.status, statusText: res.statusText };
       }
 
-      return {bonitaUser: new Bonita(res)};
+      return { bonitaUser: new Bonita(res) };
     } catch (error) {
-      return {error};
+      return { error };
     }
   }
   ///Metodos Procesos
@@ -94,19 +94,22 @@ class Bonita {
   // de aca se obtiene el caseID para getActivitiesOfCase y updateCaseVariable
   async getAllCases(name) {
     const res = await fetch(`${url}API/bpm/case?f=name=${name}`, {
-      headers: this.headers
+      headers: this.headers,
     });
     const json = await res.json();
-    return {json, error: {status: res.status, statusText: res.statusText}};
+    return { json, error: { status: res.status, statusText: res.statusText } };
   }
 
   //https://documentation.bonitasoft.com/bonita/2021.1/bpm-api#_search_among_activities
   // de aca se toma el ID de la tarea/actividad para enviar al metodo completeTask
   // 1 rootCaseID tiene solo 1 actividad en curso
   async getActivitiesOfCase(caseId) {
-    const res = await fetch(`${url}API/bpm/activity?f=rootCaseId=${caseId}&d=assigned_id`, {
-      headers: this.headers
-    });
+    const res = await fetch(
+      `${url}API/bpm/activity?f=rootCaseId=${caseId}&d=assigned_id`,
+      {
+        headers: this.headers,
+      }
+    );
     return res.json();
   }
 
@@ -115,53 +118,58 @@ class Bonita {
     const res = await fetch(`${url}API/bpm/task/${taskId}`, {
       headers: this.headers,
       method: "PUT",
-      body: JSON.stringify({ "state": "completed" })
+      body: JSON.stringify({ state: "completed" }),
     });
-    const error = {status: res.status, statusText: res.statusText};
-    const json = res.status === 200 ? {statusText: res.statusText}: null;
-    return {json, error};
+    const error = { status: res.status, statusText: res.statusText };
+    const json = res.status === 200 ? { statusText: res.statusText } : null;
+    return { json, error };
   }
 
   // https://documentation.bonitasoft.com/bonita/2021.1/bpm-api#_get_a_case_variable
   async getCaseVariable(caseId, variableName) {
-    const res = await fetch(`${url}API/bpm/caseVariable/${caseId}/${variableName}`, {
-      headers: this.headers,
-    });
+    const res = await fetch(
+      `${url}API/bpm/caseVariable/${caseId}/${variableName}`,
+      {
+        headers: this.headers,
+      }
+    );
     const json = await res.json();
-    return {json};
+    return { json };
   }
-
 
   // https://documentation.bonitasoft.com/bonita/2021.1/bpm-api#_update_a_case_variable
   async updateCaseVariable(caseId, variableName, value) {
     let javaType;
 
     switch (true) {
-      case (typeof value === 'boolean'):
-        javaType = 'java.lang.Boolean';
+      case typeof value === "boolean":
+        javaType = "java.lang.Boolean";
         break;
-      case (Number.isInteger(value)):
-        javaType = 'java.lang.Integer';
+      case Number.isInteger(value):
+        javaType = "java.lang.Integer";
         break;
-      case (/^\d+\.\d+$/.test(value)):
-        javaType='java.lang.Long';
+      case /^\d+\.\d+$/.test(value):
+        javaType = "java.lang.Long";
         break;
-        case (Date.parse(value)):
-          javaType='java.util.Date';
-          break;
+      case Date.parse(value):
+        javaType = "java.util.Date";
+        break;
       default:
-        javaType='java.lang.String';
+        javaType = "java.lang.String";
         break;
     }
 
-    const res = await fetch(`${url}API/bpm/caseVariable/${caseId}/${variableName}`, {
-      headers: this.headers,
-      method: "PUT",
-      body: JSON.stringify({ type: javaType, value: `${value}` }),
-    });
-    const error = {status: res.status, statusText: res.statusText};
-    const json = {statusText: res.statusText};
-    return {json, error};
+    const res = await fetch(
+      `${url}API/bpm/caseVariable/${caseId}/${variableName}`,
+      {
+        headers: this.headers,
+        method: "PUT",
+        body: JSON.stringify({ type: javaType, value: `${value}` }),
+      }
+    );
+    const error = { status: res.status, statusText: res.statusText };
+    const json = { statusText: res.statusText };
+    return { json, error };
   }
 
   /*
@@ -174,31 +182,33 @@ PUT
 }
 el 102 es la usuario de la mesa de entrada
 */
-  assignCase(idUser, idTask) {
-    return fetch(`${url}API/bpm/userTask/${idTask}`, {
+  async assignCase(idUser, idTask) {
+    const res = await fetch(`${url}API/bpm/userTask/${idTask}`, {
       headers: this.headers,
       method: "PUT",
       body: JSON.stringify({
         assigned_id: idUser,
       }),
     });
+    const json = { statusText: res.statusText };
+    return { json };
   }
-//   /*
-// finalizo instancia
-// POST
-// http://localhost:8080/bonita/API/bpm/userTask/60064_idTask/execution
-// esto hace que pase a la siguiente etapa
+  //   /*
+  // finalizo instancia
+  // POST
+  // http://localhost:8080/bonita/API/bpm/userTask/60064_idTask/execution
+  // esto hace que pase a la siguiente etapa
 
-// OTROS ENDPOINTS DE INTERES
-// API/identity/user?p=0&c=5 me trae los usuarios, asi me quedo con su id
-// */
+  // OTROS ENDPOINTS DE INTERES
+  // API/identity/user?p=0&c=5 me trae los usuarios, asi me quedo con su id
+  // */
 
-//   executeTask(idTask) {
-//     return fetch(`${url}API/bpm/userTask/${idTask}/execution`, {
-//       headers: this.headers,
-//       method: "POST",
-//     });
-//   }
+  //   executeTask(idTask) {
+  //     return fetch(`${url}API/bpm/userTask/${idTask}/execution`, {
+  //       headers: this.headers,
+  //       method: "POST",
+  //     });
+  //   }
   ///Metodos Usuarios
 
   getAllUsers() {
