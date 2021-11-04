@@ -87,7 +87,7 @@ const notifyToApoderado = async (
       : sendGridTemplates.CorreccionesLegales
     : key === "esValidoEnMesa"
     ? sendGridTemplates.AprobadoMesa
-    : sendGridTemplates.AprobadoLegales;
+    : null;
 
   let { data: expedients } = await supabase
     .from("expedient")
@@ -107,13 +107,15 @@ const notifyToApoderado = async (
       return res.error;
     }
   } else {
-    // envia expediente al apoderado
-    const res = await sendEmail(emailApoderado, template, {
-      expediente: id,
-    });
+    if (template) {
+      // envia expediente al apoderado
+      const res = await sendEmail(emailApoderado, template, {
+        expediente: id,
+      });
 
-    if (res.error) {
-      return res.error;
+      if (res.error) {
+        return res.error;
+      }
     }
 
     const newState =
