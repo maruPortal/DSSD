@@ -6,6 +6,8 @@ const validateParams = require("../helpers/validateParams");
 const jwtVerify = require("../helpers/jwtVerify");
 const tokenToBonitaInstance = require("../helpers/tokenToBonita");
 const expedientStatuses = require("../model/expedientStatuses");
+const { sendEmail, sendGridTemplates } = require("../helpers/email");
+
 /**
  * Receives a file (BLOB) returns a public url of that file saved in `public/uploads/estatutos/`
  */
@@ -69,6 +71,71 @@ const setExpedientToBonita = async (expedient) => {
   // let currentTask = await bonitaUser.getIdTask();
   // await bonitaUser.assignCase(userMesa, currentTask);
   return responseBonita;
+};
+
+const notifyToApoderado = async (
+  key,
+  value,
+  id,
+  rqBody,
+  caseId,
+  bonitaInstance
+) => {
+  const template = !value
+    ? key === "esValidoEnMesa"
+      ? sendGridTemplates.CorreccionesMesa
+      : sendGridTemplates.CorreccionesLegales
+    : key === "esValidoEnMesa"
+    ? sendGridTemplates.AprobadoMesa
+    : sendGridTemplates.AprobadoLegales;
+
+  let { data: expedients } = await supabase
+    .from("expedient")
+    .select("*")
+    .eq("id", id);
+  const emailApoderado = expedients[0].emailApoderado;
+
+  if (!value) {
+    //TODO: Send `correcciones` por email to apoderado
+    // envia correcciones al apoderado
+    const res = await sendEmail(emailApoderado, template, {
+      correcciones: rqBody.correcciones,
+      url: `http://localhost:3001/expediente/${id}`,
+    });
+
+    if (res.error) {
+      return res.error;
+    }
+  } else {
+    // envia expediente al apoderado
+    const res = await sendEmail(emailApoderado, template, {
+      expediente: id,
+    });
+
+    if (res.error) {
+      return res.error;
+    }
+
+    const newState =
+      key === "esValidoEnMesa"
+        ? expedientStatuses.APROBADO_EN_MESA
+        : expedientStatuses.APROBADO_EN_LEGALES;
+    // actualiza el estado del expediente en Supabase
+    let { error } = await supabase
+      .from("expedient")
+      .update({ estado: newState })
+      .eq("id", id);
+    // actualiza el estado del expediente en Bonita
+    let updateVarRes = await bonitaInstance.updateCaseVariable(
+      caseId,
+      "estado",
+      newState
+    );
+
+    if (error) {
+      return error;
+    }
+  }
 };
 
 /**
@@ -289,7 +356,7 @@ router.post(
  * body:
   { estado: 0 }
  */
-router.put("/:id", async (req, res, next) => {
+router.put("/:id", jwtVerify, tokenToBonitaInstance, async (req, res, next) => {
   try {
     let { data: expedients, error } = await supabase
       .from("expedient")
@@ -303,6 +370,14 @@ router.put("/:id", async (req, res, next) => {
       res.status(404).json(expedients);
       return;
     }
+
+    const cases = await req.__bonitaInstance.getAllCases("Sociedades");
+    const caseId = cases.json[cases.json.length - 1].id;
+    let updateVarRes = await req.__bonitaInstance.updateCaseVariable(
+      caseId,
+      "estado",
+      req.body.estado
+    );
 
     res.json(expedients);
     // TODO:: send data to bonita
@@ -340,38 +415,53 @@ router.post(
  * body:
     { "esValidoEnMesa": true, "esValidoEnLegales": true, correcciones: '....'} 
   */
-router.post("/validar", jwtVerify, tokenToBonitaInstance, async (rq, res) => {
-  const cases = await rq.__bonitaInstance.getAllCases("Sociedades");
-  const caseId = cases.json[cases.json.length - 1].id;
-  const varIndex = Object.keys(rq.body).findIndex((k) =>
-    k.includes("esValido")
-  );
-  const varKey = Object.keys(rq.body)[varIndex];
-  const varValue = rq.body[varKey];
-  const updatedVarRes = await rq.__bonitaInstance.updateCaseVariable(
-    caseId,
-    varKey,
-    varValue
-  );
+router.post(
+  "/:id/validar",
+  jwtVerify,
+  tokenToBonitaInstance,
+  async (rq, res) => {
+    const cases = await rq.__bonitaInstance.getAllCases("Sociedades");
+    const caseId = cases.json[cases.json.length - 1].id;
+    const varIndex = Object.keys(rq.body).findIndex((k) =>
+      k.includes("esValido")
+    );
+    const varKey = Object.keys(rq.body)[varIndex];
+    const varValue = rq.body[varKey];
+    const updatedVarRes = await rq.__bonitaInstance.updateCaseVariable(
+      caseId,
+      varKey,
+      varValue
+    );
 
-  if (!varValue) {
-    //TODO: Send `correcciones` por email to apoderado
-  }
-
-  if (rq.query.submitAndContinue) {
-    // La tarea debe estar asignada a un usuario de lo contrario fallara
-    const activities = await rq.__bonitaInstance.getActivitiesOfCase(caseId);
-    const activityId = activities[0].id;
-    const completeTaskRes = await rq.__bonitaInstance.completeTask(activityId);
-    if (completeTaskRes.error.status === 500) {
-      res.status(500).json({
-        ...completeTaskRes.error,
-        statusText: `Task #${activityId} is not assigned`,
-      });
+    const failedNotify = await notifyToApoderado(
+      varKey,
+      varValue,
+      rq.params.id,
+      rq.body,
+      caseId,
+      rq.__bonitaInstance
+    );
+    if (!!failedNotify) {
+      res.status(500).send(failedNotify);
     }
-  }
 
-  res.send(updatedVarRes.json);
-});
+    if (rq.query.submitAndContinue) {
+      // Note:: La tarea debe estar asignada a un usuario de lo contrario fallara
+      const activities = await rq.__bonitaInstance.getActivitiesOfCase(caseId);
+      const activityId = activities[0].id;
+      const completeTaskRes = await rq.__bonitaInstance.completeTask(
+        activityId
+      );
+      if (completeTaskRes.error.status === 500) {
+        res.status(500).json({
+          ...completeTaskRes.error,
+          statusText: `Task #${activityId} is not assigned`,
+        });
+      }
+    }
+
+    res.send(updatedVarRes.json);
+  }
+);
 
 module.exports = router;

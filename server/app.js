@@ -50,6 +50,5 @@ app.use(function (err, req, res, next) {
 
 app.use("/expedients", require("./routes/expedients"));
 app.use("/bonita", require("./routes/bonita"));
-app.use("/email", require("./routes/email"));
 
 module.exports = app;
