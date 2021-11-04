@@ -392,7 +392,7 @@ router.put("/:id", jwtVerify, tokenToBonitaInstance, async (req, res, next) => {
  * body:
  */
 router.post(
-  "/asignarAUsuario",
+  "/:id/asignarAUsuario",
   jwtVerify,
   tokenToBonitaInstance,
   async (rq, res) => {
