@@ -57,6 +57,7 @@ async function uploadFile(fileName) {
           // Handle error
           console.error(err);
         } else {
+          createLink(file.data.id);
           console.log("FILE CREATED!! File Id: ", file.data.id);
         }
       }
@@ -66,6 +67,25 @@ async function uploadFile(fileName) {
   }
 }
 
+async function createLink(fileId) {
+  try {
+    await drive.permissions.create({
+      fileId: fileId,
+      requestBody: {
+        role: "reader",
+        type: "anyone",
+      },
+    });
+    const result = await drive.files.get({
+      fileId: fileId,
+      fields: "webViewLink,webContentLink",
+    });
+    console.log(result.data);
+  } catch (error) {
+    console.log(error);
+  }
+}
 //Se llama al metodo uploadFile con el nombre del archivo ubicado en el folder
 //public/uploads/estatutos
+//Se crea la carpeta y se genera link para compatir
 uploadFile("DSSDFinal.pdf");
