@@ -5,6 +5,7 @@ const sendGridTemplates = {
   CorreccionesMesa: "d-9430aa495f7b41e2aae516f97881bde5",
   CorreccionesLegales: "d-26597769da174b208091d9c2d19ea190",
   AprobadoMesa: "d-de269af3b24d4e9584bb9de42956eee5",
+  Estampillado: "d-cdc1cfada4db457a80ada326d1a4185f"
 };
 
 // data: { correcciones: 'Testing Templates Message', url: 'http://localhost:3001/expediente/123123123123', expediente:'123123' }

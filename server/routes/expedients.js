@@ -127,12 +127,15 @@ const notifyToApoderado = async (
       .from("expedient")
       .update({ estado: newState })
       .eq("id", id);
-    // actualiza el estado del expediente en Bonita
-    let updateVarRes = await bonitaInstance.updateCaseVariable(
-      caseId,
-      "estado",
-      newState
-    );
+
+    if (bonitaInstance) {
+      // actualiza el estado del expediente en Bonita
+      let updateVarRes = await bonitaInstance.updateCaseVariable(
+        caseId,
+        "estado",
+        newState
+      );
+    }
 
     if (error) {
       return error;
@@ -373,13 +376,15 @@ router.put("/:id", jwtVerify, tokenToBonitaInstance, async (req, res, next) => {
       return;
     }
 
-    const cases = await req.__bonitaInstance.getAllCases("Sociedades");
-    const caseId = cases.json[cases.json.length - 1].id;
-    let updateVarRes = await req.__bonitaInstance.updateCaseVariable(
-      caseId,
-      "estado",
-      req.body.estado
-    );
+    if(req.__bonitaInstance) {
+      const cases = await req.__bonitaInstance.getAllCases("Sociedades");
+      const caseId = cases.json[cases.json.length - 1].id;
+      let updateVarRes = await req.__bonitaInstance.updateCaseVariable(
+        caseId,
+        "estado",
+        req.body.estado
+      );
+    }
 
     res.json(expedients);
     // TODO:: send data to bonita
@@ -495,6 +500,81 @@ router.get("/show/:id", async (req, res, next) => {
 ////////////////////////////////////////////////////
 router.get("/", function (req, res, next) {
   res.render("index", { title: "Express" });
+});
+
+router.get("/:id/notificarValidez", (rq, rs) => {
+  const varIndex = Object.keys(rq.body).findIndex((k) =>
+    k.includes("esValido")
+  );
+  const varKey = Object.keys(rq.body)[varIndex];
+  const varValue = rq.body[varKey];
+
+  const failedNotify = await notifyToApoderado(
+    varKey,
+    varValue,
+    rq.params.id,
+    rq.body
+  );
+
+  if (!!failedNotify) {
+    res.status(500).send(failedNotify);
+  }
+  res.json({ statusText: "OK" });
+});
+
+router.get("/:id/estampillar", jwtVerify, (rq, rs) => {
+  let { data: expedients, error } = await supabase
+    .from("expedient")
+    .select("*")
+    .eq("id", req.params.id);
+
+  if (error) {
+    rs.status(500).json({ error: error.message });
+  }
+  const expedient = expedients[0];
+  const { username } = rq.__jwtUserPayload;
+
+  const { token, mensaje } = await fetch(
+    "https://afternoon-falls-22500.herokuapp.com/login",
+    {
+      method: "POST",
+    },
+    { username: "escribano1", password: "bpm" }
+  );
+
+  if (mensaje === "Login Fallido") {
+    res.status(401).send({ statusText: "Unauthorized" });
+  }
+
+  const { hash, mensaje } = await fetch(
+    "https://afternoon-falls-22500.herokuapp.com/estampillar",
+    {
+      method: "POST",
+      headers: {
+        "access-token": token,
+      },
+    },
+    {
+      username,
+      estatuto: expedient.estatuto,
+      expediente: expedient.id,
+    }
+  );
+
+  if (mensaje === "Token no provisto") {
+    res.status(503).json({ statusText: "ERROR" });
+  }
+
+  let updateExpedientHashResponse = await supabase
+    .from("expedient")
+    .update({ hash })
+    .eq("id", rq.params.id);
+
+  if (updateExpedientHashResponse.error) {
+    rs.status(500).json({ error: updateExpedientHashResponse.error.message });
+  }
+
+  rs.json({ statusText: "OK" });
 });
 
 module.exports = router;
