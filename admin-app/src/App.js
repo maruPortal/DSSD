@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
 import { routes } from "./constants/routes";
 import LoginMesaEntrada from "./components/login/LoginMesaEntrada";
@@ -11,15 +10,6 @@ import ShowExpediente from "./components/listado/ShowExpediente";
 
 function App() {
 
-=======
-import { BrowserRouter, Route, Switch } from "react-router-dom";
-
-import Button from "@mui/material/Button";
-import { routes } from "./constants/routes";
-import Listado from "./components/listado/listadoExpedientes";
-
-function App() {
->>>>>>> wip
   return (
     <BrowserRouter>
       <Switch>
