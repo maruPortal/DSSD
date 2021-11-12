@@ -7,7 +7,6 @@ const jwtVerify = require("../helpers/jwtVerify");
 const tokenToBonitaInstance = require("../helpers/tokenToBonita");
 const expedientStatuses = require("../model/expedientStatuses");
 const { sendEmail, sendGridTemplates } = require("../helpers/email");
-const qrCodeGenerator = require("../helpers/qrGenerator");
 /**
  * Receives a file (BLOB) returns a public url of that file saved in `public/uploads/estatutos/`
  */
@@ -465,34 +464,7 @@ router.post(
     res.send(updatedVarRes.json);
   }
 );
-///////////SHOW USADO PARA MOSTRAR INFO CON QR/////////
-router.get("/show/:id", async (req, res, next) => {
-  try {
-    let { data: expedients, error } = await supabase
-      .from("expedient")
-      .select("*")
-      .eq("id", req.params.id);
-    let socios = expedients[0].socios.map(JSON.parse);
-    if (error) {
-      throw error;
-    }
-    qrCode = await qrCodeGenerator(
-      `http://localhost:3000/expedients/show/${expedients[0].id}`
-    );
-    if (expedients.length > 0) {
-      res.render("show", {
-        expedients: expedients[0],
-        socios: socios,
-        qrCode: qrCode,
-      });
-    } else {
-      res.status(404).json(expedients);
-    }
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-////////////////////////////////////////////////////
+
 router.get("/", function (req, res, next) {
   res.render("index", { title: "Express" });
 });

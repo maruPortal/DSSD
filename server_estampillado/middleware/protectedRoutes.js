@@ -6,7 +6,6 @@ protectedRoutes.use((req, res, next) => {
   const token = req.headers["access-token"];
 
   if (token) {
-    console.log("entraste a middleware");
     jwt.verify(token, "secretKey", (err, decoded) => {
       if (err) {
         return res.json({ mensaje: "Token inválido" });
@@ -16,6 +15,7 @@ protectedRoutes.use((req, res, next) => {
       }
     });
   } else {
+    res.status(401);
     res.send({
       mensaje: "Token no provisto.",
     });
