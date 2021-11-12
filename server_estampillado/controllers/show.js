@@ -1,18 +1,18 @@
 const qrCodeGenerator = require("../helpers/qrGenerator");
 const supabase = require("../helpers/supabase");
 
-exports.showProfile = async (req, res, next) => {
+exports.showController = async (req, res, next) => {
   try {
     let { data: expedients, error } = await supabase
       .from("expedient")
       .select("*")
-      .eq("id", req.params.id);
+      .eq("hash", req.params.hash);
     let socios = expedients[0].socios.map(JSON.parse);
     if (error) {
       throw error;
     }
     qrCode = await qrCodeGenerator(
-      `https://afternoon-falls-22500.herokuapp.com/expedients/show/${expedients[0].hash}`
+      `https://boiling-bastion-89555.herokuapp.com/show/${expedients[0].hash}`
     );
     if (expedients.length > 0) {
       res.render("show", {

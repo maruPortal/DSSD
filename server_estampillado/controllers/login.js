@@ -23,12 +23,12 @@ exports.loginController = async (req, res) => {
       expiresIn: 1440,
     });
     res.json({
-      mensaje: "Login existoso",
+      mensaje: "Login Exitoso",
       token: token,
     });
   } else {
     console.log(escribano);
-    res.json({
+    res.status(401).json({
       mensaje: "Login Fallido",
     });
   }
