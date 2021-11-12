@@ -1,0 +1,19 @@
+extends layout
+
+block content
+  h1 Nombre de Sociedad: #{expedients.nombreSociedad}
+  h2 Fecha de Creación #{expedients.fechaCreacion}
+  table(style='width:100%', border='1')
+    tr
+      th Nombre
+      th % Aporte
+    tbody
+    each socio in socios
+      tr
+        td #{socio.nombreSocio}
+        td #{socio.porcentajeAporte}
+  img(src="#{qrCode}")
+  //- img(src="data:image/jpg;base64,#{qr}")
+ 
+ 
+ 
