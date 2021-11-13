@@ -9,7 +9,6 @@ import ListadoEscribania from "./components/listado/ListadoEscribania";
 import ShowExpediente from "./components/listado/ShowExpediente";
 
 function App() {
-
   return (
     <BrowserRouter>
       <Switch>

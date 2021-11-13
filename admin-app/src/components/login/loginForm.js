@@ -35,8 +35,8 @@ const LoginForm = ({ onSubmit, title }) => {
       }
       //onSubmit solo con status 200
       if (result.status === 200) {
-        const {token} = await result.json();
-        onSubmit(token); 
+        const { token } = await result.json();
+        onSubmit(token);
       }
     } else {
       setStateSnackbar({
