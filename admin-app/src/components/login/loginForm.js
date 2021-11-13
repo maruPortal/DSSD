@@ -25,7 +25,6 @@ const LoginForm = ({ onSubmit, title }) => {
     if (validateLogIn(form)) {
       //service
       const result = loginUser(form);
-      const jsonResult = result.json();
 
       //devuelve token?
       if (result.status === 400) {
@@ -37,7 +36,7 @@ const LoginForm = ({ onSubmit, title }) => {
       }
       //onSubmit solo con status 200
       if (result.status === 200) {
-        onSubmit(jsonResult); // token?
+        onSubmit(result.json()); // token?
       }
     } else {
       setStateSnackbar({

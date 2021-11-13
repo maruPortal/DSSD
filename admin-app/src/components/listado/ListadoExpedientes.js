@@ -11,39 +11,10 @@ import AddBoxIcon from "@mui/icons-material/AddBox";
 import DoneIcon from "@mui/icons-material/Done";
 import Button from "@mui/material/Button";
 
-const Listado = () => {
+const Listado = ({ expedientes }) => {
   const classes = useStyles();
 
-  const expedientes = [
-    {
-      nombreSociedad: "DSSD 2",
-      apoderado: "yo",
-      domicilioLegal: "calle wallaby 42 sidney",
-      domicilioReal: "calle wallaby 42 sidney",
-      emailApoderado: "gaston.ambrogi@gmail.com",
-      estado: "0",
-      estatuto: "URL",
-      paises: ["ARG", "UY", "BR"],
-      socios: [
-        { nombreSocio: "JoseMi", porcentajeAporte: "30" },
-        { nombreSocio: "Maru", porcentajeAporte: "70" },
-      ],
-    },
-    {
-      nombreSociedad: "DSSD 12",
-      apoderado: "yo",
-      domicilioLegal: "calle wallaby 42 sidney",
-      domicilioReal: "calle wallaby 42 sidney",
-      emailApoderado: "gaston.ambrogi@gmail.com",
-      estado: "0",
-      estatuto: "URL",
-      paises: ["ARG", "UY", "BR"],
-      socios: [
-        { nombreSocio: "JoseMi", porcentajeAporte: "30" },
-        { nombreSocio: "Maru", porcentajeAporte: "70" },
-      ],
-    },
-  ]; // get Expedientes
+  console.log(expedientes);
 
   return (
     <>
@@ -54,7 +25,9 @@ const Listado = () => {
             <TableHead>
               <TableRow>
                 <TableCell align="right">Asignarme</TableCell>
-                <TableCell>Nombre de Sociedad</TableCell>
+                <TableCell align="right">Validar</TableCell>
+
+                <TableCell align="right">Nombre de Sociedad</TableCell>
                 <TableCell align="right">Apoderado</TableCell>
                 <TableCell align="right">Domicilio Legal</TableCell>
                 <TableCell align="right">Domicilio Real</TableCell>
@@ -66,16 +39,17 @@ const Listado = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {expedientes.map((expediente) => (
+              {expedientes.map((expediente, index) => (
                 <TableRow
-                  key={expediente.name}
+                  key={index}
                   sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                 >
                   <TableCell>
                     <Button align="center" startIcon={<AddBoxIcon />}></Button>
                     ¿ya lo tiene? <DoneIcon />
                   </TableCell>
-                  <TableCell component="th" scope="row">
+                  <TableCell align="right">si o no select? </TableCell>
+                  <TableCell align="right">
                     {expediente.nombreSociedad}
                   </TableCell>
 
