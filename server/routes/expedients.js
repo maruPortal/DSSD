@@ -7,11 +7,8 @@ const jwtVerify = require("../helpers/jwtVerify");
 const tokenToBonitaInstance = require("../helpers/tokenToBonita");
 const expedientStatuses = require("../model/expedientStatuses");
 const { sendEmail, sendGridTemplates } = require("../helpers/email");
-<<<<<<< HEAD
-=======
 const qrCodeGenerator = require("../helpers/qrGenerator");
 const fetch = require("node-fetch");
->>>>>>> 31de48c (estampillar and notificarValidez endpoint)
 /**
  * Receives a file (BLOB) returns a public url of that file saved in `public/uploads/estatutos/`
  */
