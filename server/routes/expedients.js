@@ -7,6 +7,11 @@ const jwtVerify = require("../helpers/jwtVerify");
 const tokenToBonitaInstance = require("../helpers/tokenToBonita");
 const expedientStatuses = require("../model/expedientStatuses");
 const { sendEmail, sendGridTemplates } = require("../helpers/email");
+<<<<<<< HEAD
+=======
+const qrCodeGenerator = require("../helpers/qrGenerator");
+const fetch = require("node-fetch");
+>>>>>>> 31de48c (estampillar and notificarValidez endpoint)
 /**
  * Receives a file (BLOB) returns a public url of that file saved in `public/uploads/estatutos/`
  */
@@ -469,9 +474,32 @@ router.post(
     res.send(updatedVarRes.json);
   }
 );
-
-router.get("/", function (req, res, next) {
-  res.render("index", { title: "Express" });
+///////////SHOW USADO PARA MOSTRAR INFO CON QR/////////
+router.get("/show/:id", async (req, res, next) => {
+  try {
+    let { data: expedients, error } = await supabase
+      .from("expedient")
+      .select("*")
+      .eq("id", req.params.id);
+    let socios = expedients[0].socios.map(JSON.parse);
+    if (error) {
+      throw error;
+    }
+    qrCode = await qrCodeGenerator(
+      `http://localhost:3000/expedients/show/${expedients[0].id}`
+    );
+    if (expedients.length > 0) {
+      res.render("show", {
+        expedients: expedients[0],
+        socios: socios,
+        qrCode: qrCode,
+      });
+    } else {
+      res.status(404).json(expedients);
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 router.get("/:id/notificarValidez", (rq, rs) => {
@@ -494,52 +522,62 @@ router.get("/:id/notificarValidez", (rq, rs) => {
   res.json({ statusText: "OK" });
 });
 
-router.get("/:id/estampillar", jwtVerify, (rq, rs) => {
+router.post("/:id/estampillar", jwtVerify, async (rq, rs) => {
   let { data: expedients, error } = await supabase
     .from("expedient")
     .select("*")
-    .eq("id", req.params.id);
+    .eq("id", rq.params.id);
 
   if (error) {
     rs.status(500).json({ error: error.message });
-  }
-  const expedient = expedients[0];
-  const { username } = rq.__jwtUserPayload;
-
-  const { token, mensaje } = await fetch(
-    "https://afternoon-falls-22500.herokuapp.com/login",
-    {
-      method: "POST",
-    },
-    { username: "escribano1", password: "bpm" }
-  );
-
-  if (mensaje === "Login Fallido") {
-    res.status(401).send({ statusText: "Unauthorized" });
+    return;
   }
 
-  const { hash, mensaje } = await fetch(
-    "https://afternoon-falls-22500.herokuapp.com/estampillar",
+  const resToken = await fetch(
+    "https://boiling-bastion-89555.herokuapp.com/login",
     {
       method: "POST",
+      mode: 'cors',
       headers: {
-        "access-token": token,
+        'Access-Control-Allow-Origin':'*'
       },
-    },
-    {
-      username,
-      estatuto: expedient.estatuto,
-      expediente: expedient.id,
+      body: { username: "escribano1", password: "bpm" }
     }
   );
 
-  if (mensaje === "Token no provisto") {
-    res.status(503).json({ statusText: "ERROR" });
+  if (resToken.status !== 200) {
+    rs.status(resToken.status).send({ statusText: resToken.statusText });
+    return;
+  }
+
+  const jsonToken = await resToken.json();
+  const expedient = expedients[0];
+  const { username } = rq.__jwtUserPayload;
+
+  const resHash = await fetch(
+    "https://boiling-bastion-89555.herokuapp.com/estampillar",
+    {
+      method: "POST",
+      headers: {
+        "access-token": jsonToken.token,
+      },
+      body: {
+        username,
+        estatuto: expedient.estatuto,
+        expediente: expedient.id,
+      }
+    }
+  );
+
+  const jsonHash = await resHash.json();
+
+  if (jsonHash.mensaje === "Token inválido") {
+    rs.status(503).json({ statusText: "ERROR" });
   }
 
   let updateExpedientHashResponse = await supabase
     .from("expedient")
-    .update({ hash })
+    .update({ hash: jsonHash.hash })
     .eq("id", rq.params.id);
 
   if (updateExpedientHashResponse.error) {
@@ -549,4 +587,16 @@ router.get("/:id/estampillar", jwtVerify, (rq, rs) => {
   rs.json({ statusText: "OK" });
 });
 
+router.post("/:id/drive", (req, res)=> {
+  let { data: expedients, error } = await supabase
+    .from("expedient")
+    .select("*")
+    .eq("id", rq.params.id);
+
+  if (error) {
+    rs.status(500).json({ error: error.message });
+    return;
+  }
+  const expedient = expedients[0];
+})
 module.exports = router;
