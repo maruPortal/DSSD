@@ -514,8 +514,9 @@ router.post("/:id/estampillar", jwtVerify, async (rq, rs) => {
       mode: "cors",
       headers: {
         "Access-Control-Allow-Origin": "*",
+        'Content-Type': 'application/json',
       },
-      body: { username: "escribano1", password: "bpm" },
+      body: JSON.stringify({ username: "escribano1", password: "bpm" }),
     }
   );
 
@@ -534,12 +535,13 @@ router.post("/:id/estampillar", jwtVerify, async (rq, rs) => {
       method: "POST",
       headers: {
         "access-token": jsonToken.token,
+        'Content-Type': 'application/json',
       },
-      body: {
+      body: JSON.stringify({
         username,
         estatuto: expedient.estatuto,
         expediente: expedient.id,
-      },
+      }),
     }
   );
 
@@ -558,7 +560,7 @@ router.post("/:id/estampillar", jwtVerify, async (rq, rs) => {
     rs.status(500).json({ error: updateExpedientHashResponse.error.message });
   }
 
-  rs.json({ statusText: "OK" });
+  rs.json({ statusText: "OK", hash: jsonHash.hash });
 });
 
 router.post("/:id/drive", async (rq, res) => {
