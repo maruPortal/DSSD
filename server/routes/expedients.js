@@ -9,6 +9,7 @@ const expedientStatuses = require("../model/expedientStatuses");
 const { sendEmail, sendGridTemplates } = require("../helpers/email");
 // const qrCodeGenerator = require("../helpers/qrGenerator");
 const fetch = require("node-fetch");
+const fs = require("fs");
 const { jsPDF } = require("jspdf");
 const uploadFile = require("../helpers/gDrive");
 const {Buffer} = require('buffer');
@@ -624,16 +625,17 @@ router.post("/:id/drive", async (rq, res) => {
   doc.text(`Expediente #${expedient.id}`, 10, 20);
   doc.text(`Fecha de Creacion: ${new Date(expedient.fechaCreacion)}`, 10, 30);
   doc.text(`Socios: ${socios}`, 10, 40);
-  const pdfData = doc.output("arraybuffer");
-  
-  // THIS DOESNT WORK
-  // var content = Buffer.from(pdfData)
-  // const response = await uploadFile(content);
+  // TODO: Agregar QR
+  const filePath=`/tmp/expedient_${expedient.id}.pdf`;
+  doc.save(filePath);
+  const responseExpedient = await uploadFile(expedient.id, fs.createReadStream(filePath));
 
-  // THIS WORKS
-  // const {body: estatuto} = await fetch('http://localhost:3000/uploads/estatutos/1636991456920_estatuto_ab_des.pdf');
-  // const responseEstatuto = await uploadFile(estatuto);
+  const {body: estatuto} = await fetch(expedient.estatuto);
+  const responseEstatuto = await uploadFile(expedient.id, estatuto);
 
-  res.send('');
+  res.json({
+    expedient: responseExpedient.webViewLink,
+    estatuto: responseEstatuto.webViewLink
+  });
 });
 module.exports = router;

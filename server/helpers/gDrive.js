@@ -1,5 +1,4 @@
 const { google } = require("googleapis");
-const fetch = require("node-fetch");
 const { nanoid } = require("nanoid");
 const OAuth2Data = require("../credentials.json");
 const CLIENT_ID = OAuth2Data.web.client_id;
@@ -16,9 +15,9 @@ const oauth2Client = new google.auth.OAuth2(
 oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
 const drive = google.drive({ version: "v3", auth: oauth2Client });
 
-const createFolder = async () => {
+const createFolder = async (expedientID) => {
   var fileMetadata = {
-    name: nanoid(),
+    name: `expedient_${expedientID}`,
     mimeType: "application/vnd.google-apps.folder",
   };
   return await drive.files.create({
@@ -27,7 +26,7 @@ const createFolder = async () => {
   });
 };
 
-async function uploadFile(file) {
+async function uploadFile(expedientID, file) {
   let resolveUpload,rejectUpload;
   const prom = new Promise( (resolve, reject)=> {
     resolveUpload = resolve;
@@ -37,7 +36,7 @@ async function uploadFile(file) {
   try {
     const {
       data: { id },
-    } = await createFolder();
+    } = await createFolder(expedientID);
     
     var fileMetadata = {
       name: `${nanoid()}.pdf`,
@@ -60,7 +59,7 @@ async function uploadFile(file) {
           rejectUpload(err);
         } else {
           const linkResult = await createLink(file.data.id);
-          console.log("FILE CREATED!! File Id: ", file.data.id);
+          // console.log("FILE CREATED!! File Id: ", file.data.id);
           resolveUpload(linkResult);
         }
       }
@@ -85,7 +84,7 @@ async function createLink(fileId) {
       fileId: fileId,
       fields: "webViewLink,webContentLink",
     });
-    console.log(result.data);
+    // console.log(result.data);
     return result.data;
   } catch (error) {
     console.log(error);
