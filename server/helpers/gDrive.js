@@ -1,6 +1,5 @@
 const { google } = require("googleapis");
-const path = require("path");
-const fs = require("fs");
+const fetch = require("node-fetch");
 const { nanoid } = require("nanoid");
 const OAuth2Data = require("../credentials.json");
 const CLIENT_ID = OAuth2Data.web.client_id;
@@ -28,23 +27,25 @@ const createFolder = async () => {
   });
 };
 
-async function uploadFile(fileName) {
+async function uploadFile(file) {
+  let resolveUpload,rejectUpload;
+  const prom = new Promise( (resolve, reject)=> {
+    resolveUpload = resolve;
+    rejectUpload=reject;
+  })
+
   try {
     const {
       data: { id },
     } = await createFolder();
-    const filePath = path.join(
-      __dirname,
-      "..",
-      `/public/uploads/estatutos/${fileName}`
-    );
+    
     var fileMetadata = {
       name: `${nanoid()}.pdf`,
       parents: [id],
     };
     var media = {
-      mimeType: "application/pdf",
-      body: fs.createReadStream(filePath),
+      // mimeType: "application/pdf",
+      body: file,
     };
     drive.files.create(
       {
@@ -52,19 +53,23 @@ async function uploadFile(fileName) {
         media: media,
         fields: "id",
       },
-      function (err, file) {
+      async function (err, file) {
         if (err) {
           // Handle error
           console.error(err);
+          rejectUpload(err);
         } else {
-          createLink(file.data.id);
+          const linkResult = await createLink(file.data.id);
           console.log("FILE CREATED!! File Id: ", file.data.id);
+          resolveUpload(linkResult);
         }
       }
     );
   } catch (err) {
     console.log(err);
+    rejectUpload(err)
   }
+  return prom;
 }
 
 async function createLink(fileId) {
@@ -81,6 +86,7 @@ async function createLink(fileId) {
       fields: "webViewLink,webContentLink",
     });
     console.log(result.data);
+    return result.data;
   } catch (error) {
     console.log(error);
   }
@@ -88,4 +94,23 @@ async function createLink(fileId) {
 //Se llama al metodo uploadFile con el nombre del archivo ubicado en el folder
 //public/uploads/estatutos
 //Se crea la carpeta y se genera link para compatir
-uploadFile("DSSDFinal.pdf");
+
+// const fileName = "des.pdf";
+// const filePath = path.join(
+//   __dirname,
+//   "..",
+//   `/public/uploads/estatutos/${fileName}`
+// );
+// const file = fs.createReadStream(filePath);
+// console.log(file);
+
+
+// const upload = async () => {
+//   const response = await fetch('http://localhost:3000/uploads/estatutos/1636991456920_estatuto_ab_des.pdf');
+//   uploadFile(response.body);
+// }
+
+// upload();
+
+
+module.exports = uploadFile;

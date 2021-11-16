@@ -7,8 +7,11 @@ const jwtVerify = require("../helpers/jwtVerify");
 const tokenToBonitaInstance = require("../helpers/tokenToBonita");
 const expedientStatuses = require("../model/expedientStatuses");
 const { sendEmail, sendGridTemplates } = require("../helpers/email");
-const qrCodeGenerator = require("../helpers/qrGenerator");
+// const qrCodeGenerator = require("../helpers/qrGenerator");
 const fetch = require("node-fetch");
+const { jsPDF } = require("jspdf");
+const uploadFile = require("../helpers/gDrive");
+const {Buffer} = require('buffer');
 /**
  * Receives a file (BLOB) returns a public url of that file saved in `public/uploads/estatutos/`
  */
@@ -377,7 +380,7 @@ router.put("/:id", jwtVerify, tokenToBonitaInstance, async (req, res, next) => {
       return;
     }
 
-    if(req.__bonitaInstance) {
+    if (req.__bonitaInstance) {
       const cases = await req.__bonitaInstance.getAllCases("Sociedades");
       const caseId = cases.json[cases.json.length - 1].id;
       let updateVarRes = await req.__bonitaInstance.updateCaseVariable(
@@ -499,7 +502,7 @@ router.get("/show/:id", async (req, res, next) => {
   }
 });
 
-router.get("/:id/notificarValidez", (rq, rs) => {
+router.get("/:id/notificarValidez", async (rq, rs) => {
   const varIndex = Object.keys(rq.body).findIndex((k) =>
     k.includes("esValido")
   );
@@ -534,11 +537,11 @@ router.post("/:id/estampillar", jwtVerify, async (rq, rs) => {
     "https://boiling-bastion-89555.herokuapp.com/login",
     {
       method: "POST",
-      mode: 'cors',
+      mode: "cors",
       headers: {
-        'Access-Control-Allow-Origin':'*'
+        "Access-Control-Allow-Origin": "*",
       },
-      body: { username: "escribano1", password: "bpm" }
+      body: { username: "escribano1", password: "bpm" },
     }
   );
 
@@ -562,7 +565,7 @@ router.post("/:id/estampillar", jwtVerify, async (rq, rs) => {
         username,
         estatuto: expedient.estatuto,
         expediente: expedient.id,
-      }
+      },
     }
   );
 
@@ -584,7 +587,7 @@ router.post("/:id/estampillar", jwtVerify, async (rq, rs) => {
   rs.json({ statusText: "OK" });
 });
 
-router.post("/:id/drive", (req, res)=> {
+router.post("/:id/drive", async (rq, res) => {
   let { data: expedients, error } = await supabase
     .from("expedient")
     .select("*")
@@ -595,5 +598,42 @@ router.post("/:id/drive", (req, res)=> {
     return;
   }
   const expedient = expedients[0];
-})
+
+  const socios = expedient.socios
+    .map((socio) => {
+      return socio
+        .replace("{", "")
+        .replace("}", "")
+        .split(",")
+        .reduce((acc, entry) => {
+          let [k, v] = entry.trim().split(":");
+          k = k.split('"').join("").trim();
+          v = v.split('"').join("").trim();
+          acc[k] = v;
+          return acc;
+        }, {});
+    })
+    .map(
+      (socio) =>
+        `Socio ${socio.nombreSocio} porcentaje: ${socio.porcentajeAporte}%`
+    )
+    .join(",");
+
+  const doc = new jsPDF();
+
+  doc.text(`Expediente #${expedient.id}`, 10, 20);
+  doc.text(`Fecha de Creacion: ${new Date(expedient.fechaCreacion)}`, 10, 30);
+  doc.text(`Socios: ${socios}`, 10, 40);
+  const pdfData = doc.output("arraybuffer");
+  
+  // THIS DOESNT WORK
+  // var content = Buffer.from(pdfData)
+  // const response = await uploadFile(content);
+
+  // THIS WORKS
+  // const {body: estatuto} = await fetch('http://localhost:3000/uploads/estatutos/1636991456920_estatuto_ab_des.pdf');
+  // const responseEstatuto = await uploadFile(estatuto);
+
+  res.send('');
+});
 module.exports = router;
