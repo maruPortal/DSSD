@@ -7,7 +7,7 @@ const jwtVerify = require("../helpers/jwtVerify");
 const tokenToBonitaInstance = require("../helpers/tokenToBonita");
 const expedientStatuses = require("../model/expedientStatuses");
 const { sendEmail, sendGridTemplates } = require("../helpers/email");
-// const qrCodeGenerator = require("../helpers/qrGenerator");
+const qrCodeGenerator = require("../helpers/qrGenerator");
 const fetch = require("node-fetch");
 const fs = require("fs");
 const { jsPDF } = require("jspdf");
@@ -475,33 +475,6 @@ router.post(
     res.send(updatedVarRes.json);
   }
 );
-///////////SHOW USADO PARA MOSTRAR INFO CON QR/////////
-router.get("/show/:id", async (req, res, next) => {
-  try {
-    let { data: expedients, error } = await supabase
-      .from("expedient")
-      .select("*")
-      .eq("id", req.params.id);
-    let socios = expedients[0].socios.map(JSON.parse);
-    if (error) {
-      throw error;
-    }
-    qrCode = await qrCodeGenerator(
-      `http://localhost:3000/expedients/show/${expedients[0].id}`
-    );
-    if (expedients.length > 0) {
-      res.render("show", {
-        expedients: expedients[0],
-        socios: socios,
-        qrCode: qrCode,
-      });
-    } else {
-      res.status(404).json(expedients);
-    }
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
 
 router.get("/:id/notificarValidez", async (rq, rs) => {
   const varIndex = Object.keys(rq.body).findIndex((k) =>
@@ -618,14 +591,18 @@ router.post("/:id/drive", async (rq, res) => {
       (socio) =>
         `Socio ${socio.nombreSocio} porcentaje: ${socio.porcentajeAporte}%`
     )
-    .join(",");
-
+    .join("\n");
+  const qrCode = await qrCodeGenerator(
+    `https://boiling-bastion-89555.herokuapp.com/show/${expedient.hash}`
+  );
   const doc = new jsPDF();
 
   doc.text(`Expediente #${expedient.id}`, 10, 20);
-  doc.text(`Fecha de Creacion: ${new Date(expedient.fechaCreacion)}`, 10, 30);
-  doc.text(`Socios: ${socios}`, 10, 40);
-  // TODO: Agregar QR
+  doc.text(`Nombre de Sociedad: ${expedient.nombreSociedad}`, 10, 30);
+  doc.text(`Fecha de Creacion: ${new Date(expedient.fechaCreacion)}`, 10, 40);
+  doc.text(`Socios: ${socios}`, 10, 50);
+  doc.addImage(qrCode, 'png', 10, 100);
+
   const filePath=`/tmp/expedient_${expedient.id}.pdf`;
   doc.save(filePath);
   const responseExpedient = await uploadFile(expedient.id, fs.createReadStream(filePath));
