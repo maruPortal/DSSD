@@ -8,14 +8,35 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import useStyles from "./listadoStyles";
 import AddBoxIcon from "@mui/icons-material/AddBox";
+// import ReadMoreIcon from "@mui/icons-material/ReadMore";
 import DoneIcon from "@mui/icons-material/Done";
+import ClearIcon from "@mui/icons-material/Clear";
 import Button from "@mui/material/Button";
+// import { routes } from "../../constants/routes";
+import { generatePath, useHistory } from "react-router";
+import { asignarExpediente, validarExpediente } from "../../services/service";
 
 const Listado = ({ expedientes }) => {
   const classes = useStyles();
+  const history = useHistory();
+  // console.log(expedientes);
 
-  console.log(expedientes);
+  // function verExpediente(expediente) {
+  //   const path = generatePath(routes.SHOWEXPEDIENTE, { id });
+  //   return history.push(path);
+  // }
 
+  const validarExp = (idExpediente, esValido, correcciones) => {
+    //si es false muestra modal con input para correcciones
+    const validado = validarExpediente(idExpediente);
+    console.log(validado, esValido, correcciones);
+  };
+
+  const asignarExp = (idExpediente) => {
+    const asignado = asignarExpediente(idExpediente);
+    console.log(asignado);
+    //luego modificar boton ? o desaparece listado
+  };
   return (
     <>
       <h2 className={classes["text"]}>Listado de expedientes</h2>
@@ -24,8 +45,9 @@ const Listado = ({ expedientes }) => {
           <Table sx={{ minWidth: 650 }} aria-label="simple table">
             <TableHead>
               <TableRow>
-                <TableCell align="right">Asignarme</TableCell>
-                <TableCell align="right">Validar</TableCell>
+                <TableCell align="center">Asignarme</TableCell>
+                <TableCell align="center">Validar</TableCell>
+                {/* <TableCell align="center">Ver más</TableCell> */}
 
                 <TableCell align="right">Nombre de Sociedad</TableCell>
                 <TableCell align="right">Apoderado</TableCell>
@@ -33,7 +55,7 @@ const Listado = ({ expedientes }) => {
                 <TableCell align="right">Domicilio Real</TableCell>
                 <TableCell align="right">Email de Apoderado</TableCell>
                 <TableCell align="right">Estatuto</TableCell>
-                <TableCell align="right">Estado</TableCell>
+                {/* <TableCell align="right">Estado</TableCell> */}
                 <TableCell align="right">Paises</TableCell>
                 <TableCell align="right">Socios</TableCell>
               </TableRow>
@@ -45,10 +67,41 @@ const Listado = ({ expedientes }) => {
                   sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                 >
                   <TableCell>
-                    <Button align="center" startIcon={<AddBoxIcon />}></Button>
-                    ¿ya lo tiene? <DoneIcon />
+                    <Button
+                      variant="text"
+                      align="center"
+                      startIcon={<AddBoxIcon />}
+                      onClick={() => asignarExp(expediente.id)}
+                    ></Button>
+                    o <DoneIcon />
                   </TableCell>
-                  <TableCell align="right">si o no select? </TableCell>
+                  <TableCell>
+                    <div>
+                      <Button
+                        variant="text"
+                        align="center"
+                        headers
+                        background-color="white"
+                        onClick={() => validarExp(expediente.id, true)}
+                      >
+                        <DoneIcon />
+                      </Button>
+                      <Button
+                        variant="text"
+                        align="center"
+                        background-color="white"
+                        onClick={() => validarExp(expediente.id, false)}
+                      >
+                        <ClearIcon />
+                      </Button>
+                    </div>
+                  </TableCell>
+                  {/* <TableCell align="center">
+                    <Button
+                      to={showExpedient(expediente.id)}
+                      startIcon={<ReadMoreIcon />}
+                    ></Button>
+                  </TableCell> */}
                   <TableCell align="right">
                     {expediente.nombreSociedad}
                   </TableCell>
@@ -64,7 +117,7 @@ const Listado = ({ expedientes }) => {
                     {expediente.emailApoderado}
                   </TableCell>
                   <TableCell align="right">{expediente.estatuto}</TableCell>
-                  <TableCell align="right">{expediente.estado}</TableCell>
+                  {/* <TableCell align="right">{expediente.estado}</TableCell> */}
                   <TableCell align="right">
                     {expediente.paises.toString()}
                   </TableCell>

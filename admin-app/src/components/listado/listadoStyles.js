@@ -17,6 +17,18 @@ const useStyles = makeStyles({
     letterSpacing: "0.60px",
     color: "rgba(0, 0, 0, 0.54)",
   },
+  "text-expedient": {
+    padding: "5px",
+    textAlign: "center",
+    marginTop: "5%",
+    marginBottom: "2%",
+    fontFamily: "Roboto",
+    fontStyle: "normal",
+    fontSize: "40px",
+    lineHeight: "13px",
+    letterSpacing: "0.60px",
+    color: "rgba(0, 0, 0, 0.54)",
+  },
 });
 
 export default useStyles;

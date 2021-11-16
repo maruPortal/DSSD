@@ -1,7 +1,9 @@
 import Listado from "./ListadoExpedientes";
+import { getExpedientes } from "../../services/service";
 
 const ListadoEscribania = () => {
-  return <Listado />;
+  const expedientes = getExpedientes(3);
+  return <Listado expedientes={expedientes} />;
 };
 
 export default ListadoEscribania;

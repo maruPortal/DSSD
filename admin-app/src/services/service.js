@@ -15,6 +15,7 @@ export const getExpedientes = (estado) => {
   /////////////   borrar desp - sin header
   return [
     {
+      id: "1",
       nombreSociedad: "DSSD 2",
       apoderado: "yo",
       domicilioLegal: "calle wallaby 42 sidney",
@@ -29,6 +30,7 @@ export const getExpedientes = (estado) => {
       ],
     },
     {
+      id: "2",
       nombreSociedad: "DSSD 12",
       apoderado: "yo",
       domicilioLegal: "calle wallaby 42 sidney",
@@ -47,6 +49,20 @@ export const getExpedientes = (estado) => {
   // return result;
 };
 
+export const validarExpediente = (idExpediente) => {
+  return null;
+};
+
+export const asignarExpediente = async (idExpediente) => {
+  const result = await fetch(
+    `http://localhost:3000/expedients/${idExpediente}/asignarAlUsuario`,
+    {
+      headers: { auth: "token" }, //depende del usuario
+      method: "POST",
+    }
+  );
+  return result;
+};
 // POST
 //localhost:3000/expedients/:idExpediente/asignarAlUsuario header {auth:token}
 // devuelve {statusText: OK}
