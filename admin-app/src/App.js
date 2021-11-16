@@ -9,6 +9,21 @@ import ListadoEscribania from "./components/listado/ListadoEscribania";
 import ShowExpediente from "./components/listado/ShowExpediente";
 
 function App() {
+  const pageInit = () => {
+    return (
+      <div align="center">
+        <Button key="3" href={routes.LOGINENTRADA}>
+          <h4>LogIn Mesa de entrada</h4>
+        </Button>
+        <Button key="4" href={routes.LOGINLEGALES}>
+          <h4>LogIn Legales</h4>
+        </Button>
+        <Button key="5" href={routes.LOGINESCRIBANIA}>
+          <h4>LogIn Escribanos</h4>
+        </Button>
+      </div>
+    );
+  };
   return (
     <BrowserRouter>
       <Switch>
