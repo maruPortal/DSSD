@@ -1,9 +1,24 @@
 import { getExpedientes } from "../../services/service";
-import Listado from "./ListadoExpedientes";
+import ListadoExpedientes from "./ListadoExpedientes";
+import { useEffect, useState } from "react";
 
 const ListadoLegales = () => {
-  const expedientes = getExpedientes(2);
-  return <Listado expedientes={expedientes} />;
+  let [expedientes, setExpedientes] = useState([]);
+  let [reload, setReload] = useState(false);
+
+  useEffect(() => {
+    let requestExpedientes = async () => {
+      const exps = await getExpedientes(2);
+      const newExpedientes = [];
+      exps.forEach(expediente => {
+        newExpedientes.push({...expediente, socios: expediente.socios.map(JSON.parse)});
+      })
+      setExpedientes(newExpedientes);
+    }
+    requestExpedientes();
+  }, [reload]);
+
+  return <ListadoExpedientes expedientes={expedientes} onReload={()=> setReload(!reload)} validationKey="esValidoEnLegales"/>;
 };
 
 export default ListadoLegales;

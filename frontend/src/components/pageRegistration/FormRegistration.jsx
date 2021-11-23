@@ -101,7 +101,7 @@ function FormRegistration() {
       form.socios.forEach((socio) => formData.append("socios", JSON.stringify(socio)) );
       form.paises.forEach((pais) => formData.append("paises", pais));
 
-      const result = await fetch("http://localhost:3000/expedients/", {
+      const result = await fetch("http://localhost:3002/expedients/", {
         method: "POST",
         body: formData,
       });

@@ -4,6 +4,7 @@ export const routes = {
   LISTADOLEGALES: "/listado-legales",
   LISTADOESCRIBANIA: "/listado-escribania",
   SHOWEXPEDIENTE: "/show-expediente/:id",
+  LOGIN: "/login",
   LOGINENTRADA: "/login-mesa-de-entrada",
   LOGINLEGALES: "/login-legales",
   LOGINESCRIBANIA: "/login-escribania",

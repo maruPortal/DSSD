@@ -6,11 +6,12 @@ const LoginMesaEntrada = () => {
   const history = useHistory();
 
   const loginMesaEntrada = (result) => {
-    localStorage.setItem("userMesaEntrada", JSON.stringify(result));
+    localStorage.setItem("token", result);
+    localStorage.setItem("kind", 'mesaentradas');
     history.push(routes.LISTADOMESAENTRADA);
   };
   return (
-    <LoginForm onSubmit={loginMesaEntrada} title="Login Mesa de Entrada" />
+    <LoginForm onSubmit={loginMesaEntrada} title="Login" />
   );
 };
 

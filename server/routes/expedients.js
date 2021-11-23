@@ -101,7 +101,6 @@ const notifyToApoderado = async (
   const emailApoderado = expedients[0].emailApoderado;
 
   if (!value) {
-    //TODO: Send `correcciones` por email to apoderado
     // envia correcciones al apoderado
     const res = await sendEmail(emailApoderado, template, {
       correcciones: rqBody.correcciones,
@@ -121,29 +120,6 @@ const notifyToApoderado = async (
       if (res.error) {
         return res.error;
       }
-    }
-
-    const newState =
-      key === "esValidoEnMesa"
-        ? expedientStatuses.NUEVO_EN_LEGALES
-        : expedientStatuses.APROBADO_EN_LEGALES;
-    // actualiza el estado del expediente en Supabase
-    let { error } = await supabase
-      .from("expedient")
-      .update({ estado: newState })
-      .eq("id", id);
-
-    if (bonitaInstance) {
-      // actualiza el estado del expediente en Bonita
-      let updateVarRes = await bonitaInstance.updateCaseVariable(
-        caseId,
-        "estado",
-        newState
-      );
-    }
-
-    if (error) {
-      return error;
     }
   }
 };
@@ -455,6 +431,26 @@ router.post(
     );
     if (!!failedNotify) {
       res.status(500).send(failedNotify);
+      return;
+    }
+
+    const newState =
+    varKey === "esValidoEnMesa"
+        ? (varValue)? expedientStatuses.NUEVO_EN_LEGALES: expedientStatuses.DESAPROBADO_EN_MESA
+        : (varValue)? expedientStatuses.APROBADO_EN_LEGALES: expedientStatuses.DESAPROBADO_EN_LEGALES;
+    // actualiza el estado del expediente en Supabase
+    await supabase
+      .from("expedient")
+      .update({ estado: newState })
+      .eq("id", rq.params.id);
+
+    if (rq.__bonitaInstance) {
+      // actualiza el estado del expediente en Bonita
+      await rq.__bonitaInstance.updateCaseVariable(
+        caseId,
+        "estado",
+        newState
+      );
     }
 
     if (rq.query.submitAndContinue) {
@@ -469,6 +465,7 @@ router.post(
           ...completeTaskRes.error,
           statusText: `Task #${activityId} is not assigned`,
         });
+        return;
       }
     }
 
@@ -476,27 +473,28 @@ router.post(
   }
 );
 
-router.get("/:id/notificarValidez", async (rq, rs) => {
-  const varIndex = Object.keys(rq.body).findIndex((k) =>
-    k.includes("esValido")
-  );
-  const varKey = Object.keys(rq.body)[varIndex];
-  const varValue = rq.body[varKey];
+// router.get("/:id/notificarValidez", async (rq, rs) => {
+//   const varIndex = Object.keys(rq.body).findIndex((k) =>
+//     k.includes("esValido")
+//   );
+//   const varKey = Object.keys(rq.body)[varIndex];
+//   const varValue = rq.body[varKey];
+//   const failedNotify = await notifyToApoderado(
+//     varKey,
+//     varValue,
+//     rq.params.id,
+//     rq.body
+//   );
+//   if (!!failedNotify) {
+//     res.status(500).send(failedNotify);
+//   }
+//   res.json({ statusText: "OK" });
+// });
 
-  const failedNotify = await notifyToApoderado(
-    varKey,
-    varValue,
-    rq.params.id,
-    rq.body
-  );
-
-  if (!!failedNotify) {
-    res.status(500).send(failedNotify);
-  }
-  res.json({ statusText: "OK" });
-});
-
-router.post("/:id/estampillar", jwtVerify, async (rq, rs) => {
+router.post("/:id/estampillar",
+jwtVerify,
+tokenToBonitaInstance,
+async (rq, rs) => {
   let { data: expedients, error } = await supabase
     .from("expedient")
     .select("*")
@@ -553,12 +551,41 @@ router.post("/:id/estampillar", jwtVerify, async (rq, rs) => {
 
   let updateExpedientHashResponse = await supabase
     .from("expedient")
-    .update({ hash: jsonHash.hash })
+    .update({ hash: jsonHash.hash, estado: expedientStatuses.ESTAMPILLADO })
     .eq("id", rq.params.id);
 
   if (updateExpedientHashResponse.error) {
     rs.status(500).json({ error: updateExpedientHashResponse.error.message });
   }
+
+  if (rq.query.submitAndContinue) {
+    // Note:: La tarea debe estar asignada a un usuario de lo contrario fallara
+    const cases = await rq.__bonitaInstance.getAllCases("Sociedades");
+    const caseId = cases.json[cases.json.length - 1].id;
+    const activities = await rq.__bonitaInstance.getActivitiesOfCase(caseId);
+    const activityId = activities[0].id;
+    let userId = await rq.__bonitaInstance.getUserID(
+      rq.__jwtUserPayload.username
+    );
+    const assignCaseRes = await rq.__bonitaInstance.assignCase(
+      userId,
+      activityId
+    );
+
+
+    const completeTaskRes = await rq.__bonitaInstance.completeTask(
+      activityId
+    );
+    if (completeTaskRes.error.status === 500) {
+      rs.status(500).json({
+        ...completeTaskRes.error,
+        statusText: `Task #${activityId} is not assigned`,
+      });
+      return;
+    }
+  }
+
+
 
   rs.json({ statusText: "OK", hash: jsonHash.hash });
 });
@@ -576,19 +603,7 @@ router.post("/:id/drive", async (rq, res) => {
   const expedient = expedients[0];
 
   const socios = expedient.socios
-    .map((socio) => {
-      return socio
-        .replace("{", "")
-        .replace("}", "")
-        .split(",")
-        .reduce((acc, entry) => {
-          let [k, v] = entry.trim().split(":");
-          k = k.split('"').join("").trim();
-          v = v.split('"').join("").trim();
-          acc[k] = v;
-          return acc;
-        }, {});
-    })
+    .map(JSON.parse)
     .map(
       (socio) =>
         `Socio ${socio.nombreSocio} porcentaje: ${socio.porcentajeAporte}%`
@@ -612,9 +627,21 @@ router.post("/:id/drive", async (rq, res) => {
   const {body: estatuto} = await fetch(expedient.estatuto);
   const responseEstatuto = await uploadFile(expedient.id, estatuto);
 
-  res.json({
+  const linksDrive = JSON.stringify({
     expedient: responseExpedient.webViewLink,
     estatuto: responseEstatuto.webViewLink
   });
+
+  let updateLinksDriveResponse = await supabase
+    .from("expedient")
+    .update({ linksDrive })
+    .eq("id", rq.params.id);
+
+  if (updateLinksDriveResponse.error) {
+    rs.status(500).json({ error: updateLinksDriveResponse.error.message });
+    return;
+  }
+
+  res.json(linksDrive);
 });
 module.exports = router;

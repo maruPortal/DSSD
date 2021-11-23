@@ -20,14 +20,13 @@ const LoginForm = ({ onSubmit, title }) => {
   const onCloseSnackbar = () => {
     setStateSnackbar({ ...snackbar, open: false });
   };
-  const onSubmitHandler = (e) => {
+  const onSubmitHandler = async (e) => {
     e.preventDefault();
     if (validateLogIn(form)) {
       //service
-      const result = loginUser(form);
+      const result = await loginUser(form);
 
-      //devuelve token?
-      if (result.status === 400) {
+      if (result.status === 401) {
         setStateSnackbar({
           open: true,
           type: "error",
@@ -36,7 +35,8 @@ const LoginForm = ({ onSubmit, title }) => {
       }
       //onSubmit solo con status 200
       if (result.status === 200) {
-        onSubmit(result.json()); // token?
+        const {token} = await result.json();
+        onSubmit(token); 
       }
     } else {
       setStateSnackbar({
