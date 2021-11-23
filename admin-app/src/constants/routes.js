@@ -8,5 +8,7 @@ export const routes = {
   LOGINENTRADA: "/login-mesa-de-entrada",
   LOGINLEGALES: "/login-legales",
   LOGINESCRIBANIA: "/login-escribania",
+  CREARSOCIEDAD: "/registration-page",
+  EDITARSOCIEDAD: "/formulario-editar-sociedad",
   ERROR: "*",
 };

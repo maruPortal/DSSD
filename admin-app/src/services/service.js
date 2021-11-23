@@ -31,6 +31,11 @@ export const validarExpediente = async (idExpediente, body) => {
 
   return result;
 };
+// error cuando quieren validar sin antes tener asignado
+// {
+//   "status": 500,
+//   "statusText": "Task #80073 is not assigned"
+// }
 
 export const asignarExpediente = async (idExpediente) => {
   const token = localStorage.getItem("token");
