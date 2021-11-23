@@ -7,9 +7,7 @@ const LoginLegales = () => {
 
   const loginLegales = (result) => {
     localStorage.setItem("token", result);
-    // TODO
-    localStorage.setItem("username", null);
-    localStorage.setItem("kind", 'legales');
+    localStorage.setItem("kind", "legales");
     history.push(routes.LISTADOLEGALES);
   };
   return <LoginForm onSubmit={loginLegales} title="Login" />;

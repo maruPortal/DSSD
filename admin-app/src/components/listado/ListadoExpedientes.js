@@ -12,7 +12,11 @@ import Snackbar from "@material-ui/core/Snackbar";
 import Alert from "@material-ui/lab/Alert";
 import Button from "@mui/material/Button";
 import { generatePath, useHistory } from "react-router";
-import { asignarExpediente, validarExpediente, estampillarExpediente } from "../../services/service";
+import {
+  asignarExpediente,
+  validarExpediente,
+  estampillarExpediente,
+} from "../../services/service";
 
 import TextField from "@mui/material/TextField";
 import Dialog from "@mui/material/Dialog";
@@ -20,20 +24,29 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 
-const ListadoExpedientes = ({ expedientes, onReload, validationKey, hideValidationActions, showStampActions }) => {
+const ListadoExpedientes = ({
+  expedientes,
+  onReload,
+  validationKey,
+  hideValidationActions,
+  showStampActions,
+}) => {
   const classes = useStyles();
   const history = useHistory();
 
-  const [modalOpen, setModalOpen] = useState({show:false, expediente:null, correcciones: null});
+  const [modalOpen, setModalOpen] = useState({
+    show: false,
+    expediente: null,
+    correcciones: null,
+  });
 
   const handleClickModalOpen = (expediente) => {
-    setModalOpen({show: true, expediente});
+    setModalOpen({ show: true, expediente });
   };
 
   const handleModalClose = () => {
-    setModalOpen({show: false, expediente: null});
+    setModalOpen({ show: false, expediente: null });
   };
-
 
   const [snackbar, setStateSnackbar] = useState({
     open: false,
@@ -50,11 +63,11 @@ const ListadoExpedientes = ({ expedientes, onReload, validationKey, hideValidati
 
     const body = {
       [validationKey]: esValido,
-      ...!esValido?({correcciones}):{}
-    }
+      ...(!esValido ? { correcciones } : {}),
+    };
     const validado = await validarExpediente(idExpediente, body);
 
-    if(validado.status === 500) {
+    if (validado.status === 500) {
       setStateSnackbar({
         open: true,
         type: "error",
@@ -68,21 +81,21 @@ const ListadoExpedientes = ({ expedientes, onReload, validationKey, hideValidati
       });
       onReload();
     }
-
   };
 
   const sendCorrecciones = () => {
     validarExp(modalOpen.expediente.id, false, modalOpen.correcciones);
     handleModalClose();
-  }
+  };
 
   const updateCorrecciones = (correcciones) => {
     setModalOpen((prevState) => {
       return {
-        ...prevState, correcciones
-      }
-    })
-  }
+        ...prevState,
+        correcciones,
+      };
+    });
+  };
 
   const asignarExp = async (idExpediente) => {
     await asignarExpediente(idExpediente);
@@ -117,7 +130,7 @@ const ListadoExpedientes = ({ expedientes, onReload, validationKey, hideValidati
             rows={4}
             label="Correcciones"
             placeholder="Correcciones"
-            onChange={(e) => updateCorrecciones(e.target.value) }
+            onChange={(e) => updateCorrecciones(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
@@ -125,7 +138,6 @@ const ListadoExpedientes = ({ expedientes, onReload, validationKey, hideValidati
           <Button onClick={sendCorrecciones}>Enviar Correcciones</Button>
         </DialogActions>
       </Dialog>
-
 
       <h2 className={classes["text"]}>Listado de expedientes</h2>
       <div key="1" className={classes["listado"]}>
@@ -156,46 +168,48 @@ const ListadoExpedientes = ({ expedientes, onReload, validationKey, hideValidati
                 >
                   <TableCell>
                     <div>
-                      {!hideValidationActions && (<>
-                        <Button
-                        variant="text"
-                        align="center"
-                        onClick={() => asignarExp(expediente.id)}
-                      >
-                        Asignar
-                      </Button>
-                      <Button
-                        variant="text"
-                        align="center"
-                        background-color="white"
-                        onClick={() => validarExp(expediente.id, true)}
-                      >
-                        Valido
-                      </Button>
-                      <Button
-                        variant="text"
-                        align="center"
-                        background-color="white"
-                        onClick={() => handleClickModalOpen(expediente)}
-                      >
-                        Invalido
-                      </Button>
-                      </>)}
+                      {!hideValidationActions && (
+                        <>
+                          <Button
+                            variant="text"
+                            align="center"
+                            onClick={() => asignarExp(expediente.id)}
+                          >
+                            Asignar
+                          </Button>
+                          <Button
+                            variant="text"
+                            align="center"
+                            background-color="white"
+                            onClick={() => validarExp(expediente.id, true)}
+                          >
+                            Valido
+                          </Button>
+                          <Button
+                            variant="text"
+                            align="center"
+                            background-color="white"
+                            onClick={() => handleClickModalOpen(expediente)}
+                          >
+                            Invalido
+                          </Button>
+                        </>
+                      )}
 
-                      {showStampActions && (<>
-                        <Button
-                        variant="text"
-                        align="center"
-                        onClick={() => estampillarExp(expediente.id)}
-                      >
-                        Estampillar
-                      </Button>
-                      </>) }
+                      {showStampActions && (
+                        <>
+                          <Button
+                            variant="text"
+                            align="center"
+                            onClick={() => estampillarExp(expediente.id)}
+                          >
+                            Estampillar
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </TableCell>
-                  <TableCell align="right">
-                    {expediente.id}
-                  </TableCell>
+                  <TableCell align="right">{expediente.id}</TableCell>
                   <TableCell align="right">
                     {expediente.nombreSociedad}
                   </TableCell>
@@ -211,21 +225,26 @@ const ListadoExpedientes = ({ expedientes, onReload, validationKey, hideValidati
                     {expediente.emailApoderado}
                   </TableCell>
                   <TableCell align="right">
-                    <a href={expediente.estatuto} target="_blank"> Estatuto </a>
+                    <a href={expediente.estatuto} target="_blank">
+                      {" "}
+                      Estatuto{" "}
+                    </a>
                   </TableCell>
                   {/* <TableCell align="right">{expediente.estado}</TableCell> */}
                   <TableCell align="right">
                     {expediente.paises.toString()}
                   </TableCell>
                   <TableCell>
-                    {
-                      expediente.socios.map((socio) => {
-                        return (<span key={`${socio.nombreSocio}${socio.porcentajeAporte}`}>
+                    {expediente.socios.map((socio) => {
+                      return (
+                        <span
+                          key={`${socio.nombreSocio}${socio.porcentajeAporte}`}
+                        >
                           {`${socio.nombreSocio} ${socio.porcentajeAporte}%`}
-                          <br/>
-                        </span>)
-                      })
-                    }
+                          <br />
+                        </span>
+                      );
+                    })}
                   </TableCell>
                 </TableRow>
               ))}

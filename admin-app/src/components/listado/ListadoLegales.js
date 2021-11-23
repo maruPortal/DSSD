@@ -10,15 +10,24 @@ const ListadoLegales = () => {
     let requestExpedientes = async () => {
       const exps = await getExpedientes(2);
       const newExpedientes = [];
-      exps.forEach(expediente => {
-        newExpedientes.push({...expediente, socios: expediente.socios.map(JSON.parse)});
-      })
+      exps.forEach((expediente) => {
+        newExpedientes.push({
+          ...expediente,
+          socios: expediente.socios.map(JSON.parse),
+        });
+      });
       setExpedientes(newExpedientes);
-    }
+    };
     requestExpedientes();
   }, [reload]);
 
-  return <ListadoExpedientes expedientes={expedientes} onReload={()=> setReload(!reload)} validationKey="esValidoEnLegales"/>;
+  return (
+    <ListadoExpedientes
+      expedientes={expedientes}
+      onReload={() => setReload(!reload)}
+      validationKey="esValidoEnLegales"
+    />
+  );
 };
 
 export default ListadoLegales;

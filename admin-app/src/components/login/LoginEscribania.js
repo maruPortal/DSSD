@@ -7,7 +7,7 @@ const LoginEscribania = () => {
   const history = useHistory();
   const loginEscribania = (result) => {
     localStorage.setItem("token", result);
-    localStorage.setItem("kind", 'mesaentradas');
+    localStorage.setItem("kind", "escribania");
     history.push(routes.LISTADOESCRIBANIA);
   };
   return <LoginForm onSubmit={loginEscribania} title="Login" />;

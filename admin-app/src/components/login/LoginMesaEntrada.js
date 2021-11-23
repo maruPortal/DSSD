@@ -7,12 +7,10 @@ const LoginMesaEntrada = () => {
 
   const loginMesaEntrada = (result) => {
     localStorage.setItem("token", result);
-    localStorage.setItem("kind", 'mesaentradas');
+    localStorage.setItem("kind", "mesaentradas");
     history.push(routes.LISTADOMESAENTRADA);
   };
-  return (
-    <LoginForm onSubmit={loginMesaEntrada} title="Login" />
-  );
+  return <LoginForm onSubmit={loginMesaEntrada} title="Login" />;
 };
 
 export default LoginMesaEntrada;
