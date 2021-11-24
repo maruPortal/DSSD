@@ -6,7 +6,7 @@ const url = "http://localhost:8080/bonita/";
 const getCookies = (response) => response.headers.get("set-cookie").split(", ");
 const getSession = (cookie) => cookie[1].split("; ")[0].split("=")[1];
 const getBonitaAPIToken = (cookie) => cookie[2].split("; ")[0].split("=")[1];
-const contrato = { apoderado: "pepito", domicilioLegal: "prueba" };
+
 const CONTENT_TYPE = {
   JSON: "application/json",
 };

@@ -4,6 +4,7 @@ const Bonita = require("../model/bonita.js");
 const supabase = require("../helpers/supabase");
 const validateParams = require("../helpers/validateParams");
 const jwtVerify = require("../helpers/jwtVerify");
+const addHistoryRow = require("../helpers/addHistoryRow");
 const tokenToBonitaInstance = require("../helpers/tokenToBonita");
 const expedientStatuses = require("../model/expedientStatuses");
 const { sendEmail, sendGridTemplates } = require("../helpers/email");
@@ -71,10 +72,6 @@ const setExpedientToBonita = async (expedient) => {
   let { bonitaUser } = await Bonita.login();
   await bonitaUser.getProcessID("Sociedades");
   const responseBonita = await bonitaUser.postCase(transformedExpedient);
-  // vvv THIS IS NOT OK vvv
-  // let userMesa = await bonitaUser.getUserID("mesaentradas1");
-  // let currentTask = await bonitaUser.getIdTask();
-  // await bonitaUser.assignCase(userMesa, currentTask);
   return responseBonita;
 };
 
@@ -368,7 +365,6 @@ router.put("/:id", jwtVerify, tokenToBonitaInstance, async (req, res, next) => {
     }
 
     res.json(expedients);
-    // TODO:: send data to bonita
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -381,6 +377,7 @@ router.post(
   "/:id/asignarAUsuario",
   jwtVerify,
   tokenToBonitaInstance,
+  addHistoryRow('ASIGNACION'),
   async (rq, res) => {
     const cases = await rq.__bonitaInstance.getAllCases("Sociedades");
     const caseId = cases.json[cases.json.length - 1].id;
@@ -407,6 +404,7 @@ router.post(
   "/:id/validar",
   jwtVerify,
   tokenToBonitaInstance,
+  addHistoryRow('VALIDACION'),
   async (rq, res) => {
     const cases = await rq.__bonitaInstance.getAllCases("Sociedades");
     const caseId = cases.json[cases.json.length - 1].id;
@@ -472,28 +470,66 @@ router.post(
     res.send(updatedVarRes.json);
   }
 );
+/** POST localhost:3000/expedients/validar (OPCIONAL: ?submitAndContinue=true)
+ * body:
+    { "esValidoEnMesa": true, "esValidoEnLegales": true, correcciones: '....'} 
+  */
+router.post(
+  "/:id/validacionAutomaticaLegales",
+  addHistoryRow('VALIDACION'),
+  async (rq, res) => {
+    const varIndex = Object.keys(rq.body).findIndex((k) =>
+      k.includes("esValido")
+    );
+    const varKey = Object.keys(rq.body)[varIndex];
+    const varValue = rq.body[varKey];
+    const failedNotify = await notifyToApoderado(
+      varKey,
+      varValue,
+      rq.params.id,
+      rq.body
+    );
 
-// router.get("/:id/notificarValidez", async (rq, rs) => {
-//   const varIndex = Object.keys(rq.body).findIndex((k) =>
-//     k.includes("esValido")
-//   );
-//   const varKey = Object.keys(rq.body)[varIndex];
-//   const varValue = rq.body[varKey];
-//   const failedNotify = await notifyToApoderado(
-//     varKey,
-//     varValue,
-//     rq.params.id,
-//     rq.body
-//   );
-//   if (!!failedNotify) {
-//     res.status(500).send(failedNotify);
-//   }
-//   res.json({ statusText: "OK" });
-// });
+    if (!!failedNotify) {
+      res.status(500).send(failedNotify);
+      return;
+    }
+
+    const newState =
+    varKey === "esValidoEnMesa"
+        ? (varValue)? expedientStatuses.NUEVO_EN_LEGALES: expedientStatuses.DESAPROBADO_EN_MESA
+        : (varValue)? expedientStatuses.APROBADO_EN_LEGALES: expedientStatuses.DESAPROBADO_EN_LEGALES;
+    // actualiza el estado del expediente en Supabase
+    await supabase
+      .from("expedient")
+      .update({ estado: newState })
+      .eq("id", rq.params.id);
+
+    res.send({statusText:"OK"});
+  }
+);
+
+router.post("/:id/notificarQR", 
+addHistoryRow('MAILQR'),
+async (rq, rs) => {
+  let { data: expedients } = await supabase
+    .from("expedient")
+    .select("*")
+    .eq("id", rq.params.id);
+  const emailApoderado = expedients[0].emailApoderado;
+
+  // envia link al apoderado
+  sendEmail(emailApoderado, sendGridTemplates.Estampillado, {
+    url:`https://boiling-bastion-89555.herokuapp.com/show/${expedients[0].hash}`
+  });
+
+  rs.json({ statusText: "OK" });
+});
 
 router.post("/:id/estampillar",
 jwtVerify,
 tokenToBonitaInstance,
+addHistoryRow('ESTAMPILLAR'),
 async (rq, rs) => {
   let { data: expedients, error } = await supabase
     .from("expedient")
@@ -590,7 +626,9 @@ async (rq, rs) => {
   rs.json({ statusText: "OK", hash: jsonHash.hash });
 });
 
-router.post("/:id/drive", async (rq, res) => {
+router.post("/:id/drive", 
+addHistoryRow('DRIVE'),
+async (rq, res) => {
   let { data: expedients, error } = await supabase
     .from("expedient")
     .select("*")
