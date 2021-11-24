@@ -1,33 +1,31 @@
 import Form from "./Formulario";
 import useStyles from "./formularioRegistroStyle";
 import { useState } from "react";
+import { useParams } from "react-router";
+import { getExpediente, putExpediente } from "../../services/service";
+import { useEffect } from "react";
 
 const EditarFormulario = () => {
   const classesForm = useStyles();
+  const { id: idExpediente } = useParams();
+  const [form, setForm] = useState({});
 
-  //get de expediente
-  const [form, setForm] = useState({
-    id: "1",
-    nombreSociedad: "DSSD 2",
-    apoderado: "yo",
-    domicilioLegal: "calle wallaby 42 sidney",
-    domicilioReal: "calle wadddllaby 42 sidney",
-    emailApoderado: "asda.ambrogi@gmail.com",
-    estado: "0",
-    estatuto: "URL",
-    paises: ["ARG", "UY", "BR"],
-    socios: [
-      { nombreSocio: "JoseMi", porcentajeAporte: "30" },
-      { nombreSocio: "Maru", porcentajeAporte: "70" },
-    ],
-  });
+  useEffect(() => {
+    async function getExp() {
+      const expediente = await getExpediente(idExpediente);
+      setForm({ ...expediente, socios: expediente.socios.map(JSON.parse) });
+    }
+    getExp();
+  }, []);
 
   const editarFormulario = async (formData) => {
-    ////////////// url ?
-    return await fetch("http://localhost:3000/expedients/", {
-      method: "PUT",
-      body: formData,
-    });
+    if (form.estado === -1) {
+      formData.append("estado", "5");
+    } else if (form.estado === -2) {
+      formData.append("estado", "6");
+    }
+    const result = await putExpediente(idExpediente, formData);
+    return result;
   };
 
   return (

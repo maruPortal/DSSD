@@ -17,7 +17,7 @@ const CargarFormulario = () => {
   });
 
   const crearFormulario = async (formData) => {
-    return await fetch("http://localhost:3000/expedients/", {
+    return await fetch("http://localhost:3002/expedients/", {
       method: "POST",
       body: formData,
     });

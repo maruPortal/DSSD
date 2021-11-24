@@ -61,3 +61,18 @@ export const estampillarExpediente = async (idExpediente) => {
 
   return result;
 };
+
+export const putExpediente = async (idExpediente, formData) => {
+  return await fetch(`http://localhost:3002/expedients/${idExpediente}`, {
+    method: "PUT",
+    body: formData,
+  });
+};
+
+export const getExpediente = async (idExpediente) => {
+  const result = await fetch(
+    `http://localhost:3002/expedients/${idExpediente}`
+  );
+  const jsonResponse = await result.json();
+  return jsonResponse[0];
+};

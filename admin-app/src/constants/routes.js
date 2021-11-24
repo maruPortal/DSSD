@@ -9,6 +9,6 @@ export const routes = {
   LOGINLEGALES: "/login-legales",
   LOGINESCRIBANIA: "/login-escribania",
   CREARSOCIEDAD: "/registration-page",
-  EDITARSOCIEDAD: "/formulario-editar-sociedad",
+  EDITARSOCIEDAD: "/formulario-editar-sociedad/:id", //modificar por ruta de mail
   ERROR: "*",
 };

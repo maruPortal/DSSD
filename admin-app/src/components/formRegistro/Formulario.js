@@ -18,21 +18,11 @@ import DialogTitle from "@mui/material/DialogTitle";
 import { useQuery } from "@apollo/client";
 import { GET_COUNTRIES } from "../../graphql/query";
 import { validateForm } from "../../helpers/validateForm";
+import { useEffect } from "react";
 
 function Form({ form, setForm, enviarForm, textButton }) {
   const classesForm = useStyles();
   const [paises, setPaises] = React.useState([]);
-
-  // const [form, setForm] = React.useState({
-  //   nombreSociedad: "",
-  //   socios: [],
-  //   apoderado: "",
-  //   estatuto: "",
-  //   domicilioLegal: "",
-  //   domocilioReal: "",
-  //   emailApoderado: "",
-  //   paises: [],
-  // });
 
   const [errorForm, setErrorForm] = React.useState([]);
 
@@ -48,16 +38,24 @@ function Form({ form, setForm, enviarForm, textButton }) {
   const [partners, setPartners] = React.useState([]);
 
   const [datosCargados, setDatosCargados] = useState(false);
-  const cargarDatos = () => {
-    if (textButton === "Editar" && !datosCargados) {
-      setPartners([...form.socios]);
-      setPaises([...form.paises]); //formato paises
-      setDatosCargados(true);
-      console.log("HOLA");
-    }
-  };
 
-  cargarDatos();
+  useEffect(() => {
+    const cargarDatos = () => {
+      if (form?.id && textButton === "Editar" && !datosCargados) {
+        setPartners([...form.socios]);
+        setAporteTotal(
+          form.socios.reduce((total, { porcentajeAporte }) => {
+            return total + parseInt(porcentajeAporte);
+          }, 0)
+        );
+
+        setPaises([...form.paises]); //formato paises
+        setDatosCargados(true);
+      }
+    };
+
+    cargarDatos();
+  }, [form]);
 
   const [stateSnackbar, setStateSnackbar] = React.useState({
     open: false,
@@ -107,16 +105,13 @@ function Form({ form, setForm, enviarForm, textButton }) {
   const onSubmitHandler = async (e) => {
     e.preventDefault();
     setErrorForm(null);
-    // //////////////
-    console.log(form);
-    // /////////////
     form.socios = [...partners];
     form.paises = paises.length ? [...paises] : ["Argentina"];
     if (validateForm(form) && aporteTotal === 100) {
       let formData = new FormData();
       formData.append("apoderado", form.apoderado);
       formData.append("domicilioLegal", form.domicilioLegal);
-      formData.append("domicilioReal", form.domocilioReal);
+      formData.append("domicilioReal", form.domicilioReal);
       formData.append("emailApoderado", form.emailApoderado);
       formData.append("estatuto", form.estatuto);
       formData.append("nombreSociedad", form.nombreSociedad);
@@ -125,13 +120,17 @@ function Form({ form, setForm, enviarForm, textButton }) {
         formData.append("socios", JSON.stringify(socio))
       );
       form.paises.forEach((pais) => formData.append("paises", pais));
-
-      const result = enviarForm(formData);
+      const result = await enviarForm(formData);
 
       const jsonResult = await result.json();
-      if (result.status === 400) {
+      if (result.status === 400 || result.status === 500) {
         setErrorForm(jsonResult);
-      } else {
+        setStateSnackbar({
+          open: true,
+          type: "error",
+          message: "error al enviar formulario", // jsonResult ??
+        });
+      } else if (result.status === 200) {
         setStateSnackbar({
           open: true,
           type: "success",
@@ -206,7 +205,6 @@ function Form({ form, setForm, enviarForm, textButton }) {
               errorForm?.key === "nombreSociedad" ? errorForm?.validation : null
             }
           />
-
           <div className="customFieldBox">
             <Button onClick={handleClickModalOpen}>Agregar Socio</Button>
 
@@ -241,11 +239,9 @@ function Form({ form, setForm, enviarForm, textButton }) {
               </DialogActions>
             </Dialog>
           </div>
-
           {partners.length > 0 && (
             <ul className={classesForm["socios"]}>{listPartners}</ul>
           )}
-
           <TextField
             select
             label="Apoderado"
@@ -258,12 +254,20 @@ function Form({ form, setForm, enviarForm, textButton }) {
             }
           >
             {partners.map((socio, index) => (
-              <MenuItem value={socio.nombreSocio} key={index}>
+              <MenuItem
+                value={socio.nombreSocio}
+                selected={socio.nombreSocio == form.apoderado}
+                key={index}
+              >
                 {`${socio.nombreSocio}`}
               </MenuItem>
             ))}
           </TextField>
-
+          {textButton === "Editar" ? (
+            <a href={form.estatuto}>Estatuto</a>
+          ) : (
+            <></>
+          )}
           <TextField
             id="Estatuto"
             label="Estatuto"
@@ -276,7 +280,6 @@ function Form({ form, setForm, enviarForm, textButton }) {
               errorForm?.key === "estatuto" ? errorForm?.validation : null
             }
           />
-
           <TextField
             id="DomicilioLegal"
             label="Domicilio legal"
@@ -301,7 +304,6 @@ function Form({ form, setForm, enviarForm, textButton }) {
               errorForm?.key === "domicilioReal" ? errorForm?.validation : null
             }
           />
-
           <TextField
             id="emailApoderado"
             label="Correo electrónico"

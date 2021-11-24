@@ -15,24 +15,6 @@ import EditarFormulario from "./components/formRegistro/editarFormulario";
 const client = setup();
 
 function App() {
-  const pageInit = () => {
-    return (
-      <div align="center">
-        <Button key="3" href={routes.LOGINENTRADA}>
-          <h4>LogIn Mesa de entrada</h4>
-        </Button>
-        <Button key="4" href={routes.LOGINLEGALES}>
-          <h4>LogIn Legales</h4>
-        </Button>
-        <Button key="5" href={routes.LOGINESCRIBANIA}>
-          <h4>LogIn Escribanos</h4>
-        </Button>
-        <Button key="6" href={routes.CREARSOCIEDAD}>
-          <h4>Crear sociedad anonima</h4>
-        </Button>
-      </div>
-    );
-  };
   return (
     <ApolloProvider client={client}>
       <BrowserRouter>
