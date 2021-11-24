@@ -13,7 +13,7 @@ const fetch = require("node-fetch");
 const fs = require("fs");
 const { jsPDF } = require("jspdf");
 const uploadFile = require("../helpers/gDrive");
-const {Buffer} = require('buffer');
+
 /**
  * Receives a file (BLOB) returns a public url of that file saved in `public/uploads/estatutos/`
  */
