@@ -483,7 +483,7 @@ router.post(
   */
 router.post(
   "/:id/validacionAutomaticaLegales",
-  addHistoryRow('VALIDACION'),
+  addHistoryRow('VALIDACION APROBADO'),
   async (rq, res) => {
     const varIndex = Object.keys(rq.body).findIndex((k) =>
       k.includes("esValido")
