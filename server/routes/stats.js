@@ -44,27 +44,33 @@ router.get("/avgTime/:id", async (req, res) => {
 router.get("/userAvgTime/:username", async (req, res) => {
   let { data: historial, error } = await supabase.from('historial').select("*").eq('usuario', req.params.username) .order('created_at', { ascending: true });
 
-  const groupedByExpedients=groupBy(historial, 'expediente_id');
-  let dates = {}, avg = 0;
-  let expedientsKeys = Object.keys(groupedByExpedients);
-  expedientsKeys.map(expedientsKey => {
-    if (!dates[expedientsKey]) {
-      dates[expedientsKey] = null;
-    }
-
-    const first = groupedByExpedients[expedientsKey][0];
-    const last = groupedByExpedients[expedientsKey][groupedByExpedients[expedientsKey].length-1];
-
-    const avgTime = ((new Date(last.created_at)) - (new Date(first.created_at)))/2;
-    dates[expedientsKey] = avgTime;
-
-  });
-
-  avg = Object.values(dates).reduce((acc, nextV) => (acc += nextV), 0)/Object.values(dates).length;
-
-  res.json({
-    avgTime: new Date(avg).toISOString().substr(11, 8)
-  });
+  if(historial.length > 0) {
+    const groupedByExpedients=groupBy(historial, 'expediente_id');
+    let dates = {}, avg = 0;
+    let expedientsKeys = Object.keys(groupedByExpedients);
+    expedientsKeys.map(expedientsKey => {
+      if (!dates[expedientsKey]) {
+        dates[expedientsKey] = null;
+      }
+  
+      const first = groupedByExpedients[expedientsKey][0];
+      const last = groupedByExpedients[expedientsKey][groupedByExpedients[expedientsKey].length-1];
+  
+      const avgTime = ((new Date(last.created_at)) - (new Date(first.created_at)))/2;
+      dates[expedientsKey] = avgTime;
+  
+    });
+  
+    avg = Object.values(dates).reduce((acc, nextV) => (acc += nextV), 0)/Object.values(dates).length;
+  
+    res.json({
+      avgTime: new Date(avg).toISOString().substr(11, 8)
+    });
+  } else {
+    res.json({
+      avgTime: '-'
+    });
+  }
 });
 
 module.exports = router;

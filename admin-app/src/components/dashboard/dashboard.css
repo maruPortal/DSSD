@@ -1,0 +1,14 @@
+.dashboard {
+  display:flex;
+}
+.dashboard__section {
+  flex: 1 1 auto;
+  margin-top: 20px;
+}
+.dashboard__section h2 {
+  text-align: center;
+}
+
+.dashboard__section + .dashboard__section{
+  margin-left: 10px;
+}

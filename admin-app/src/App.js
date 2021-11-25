@@ -1,12 +1,18 @@
 import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
 import { routes } from "./constants/routes";
+import LoginAdmin from "./components/login/LoginAdmin";
 import LoginMesaEntrada from "./components/login/LoginMesaEntrada";
 import LoginLegales from "./components/login/LoginLegales";
+import LoginEscribania from "./components/login/LoginEscribania";
+
 import ListadoMesaEntrada from "./components/listado/ListadoMesaEntrada";
 import ListadoLegales from "./components/listado/ListadoLegales";
-import LoginEscribania from "./components/login/LoginEscribania";
 import ListadoEscribania from "./components/listado/ListadoEscribania";
+
 import ShowExpediente from "./components/listado/ShowExpediente";
+
+import Dashboard from "./components/dashboard/Dashboard";
+
 import { setup } from "./graphql/graphql";
 import { ApolloProvider } from "@apollo/client";
 import CargarFormulario from "./components/formRegistro/cargarFormulario";
@@ -30,6 +36,12 @@ function App() {
           </Route>
           <Route path={routes.LOGINESCRIBANIA}>
             <LoginEscribania />
+          </Route>
+          <Route path={routes.LOGINADMIN}>
+            <LoginAdmin />
+          </Route>
+          <Route path={routes.DASHBOARD}>
+            <Dashboard />
           </Route>
           <Route path={routes.LISTADOMESAENTRADA}>
             <ListadoMesaEntrada />
