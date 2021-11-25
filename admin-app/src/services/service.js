@@ -9,9 +9,9 @@ export const loginUser = async (user) => {
   return result; // {token:tok}
 };
 
-export const getExpedientes = async (estado=null) => {
+export const getExpedientes = async (estado = null) => {
   const result = await fetch(
-    `http://localhost:3002/expedients/${estado?`?estado=${estado}`:''}`
+    `http://localhost:3002/expedients/${estado ? `?estado=${estado}` : ""}`
   );
 
   const jsonResponse = await result.json();
@@ -90,6 +90,8 @@ export const getUsuarioAvgTime = async (usuario) => {
     `http://localhost:3002/stats/userAvgTime/${usuario}`
   );
   const jsonResponse = await result.json();
+  return jsonResponse;
+};
 export const getEstados = async () => {
   const result = await fetch("http://localhost:3002/stats/estados");
   const jsonResponse = await result.json();

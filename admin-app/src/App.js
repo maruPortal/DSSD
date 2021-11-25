@@ -17,7 +17,6 @@ import { setup } from "./graphql/graphql";
 import { ApolloProvider } from "@apollo/client";
 import CargarFormulario from "./components/formRegistro/cargarFormulario";
 import EditarFormulario from "./components/formRegistro/editarFormulario";
-import Charts from "./components/charts/Chart";
 
 const client = setup();
 
@@ -61,9 +60,6 @@ function App() {
           </Route>
           <Route path={routes.EDITARSOCIEDAD}>
             <EditarFormulario />
-          </Route>
-          <Route path={routes.CHARTS}>
-            <Charts />
           </Route>
           <Route exact path={routes.ERROR}>
             <Redirect to={routes.INIT} />
