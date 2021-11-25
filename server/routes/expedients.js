@@ -404,7 +404,14 @@ router.post(
   "/:id/validar",
   jwtVerify,
   tokenToBonitaInstance,
-  addHistoryRow('VALIDACION'),
+  addHistoryRow((rq)=> {
+    const varIndex = Object.keys(rq.body)
+                           .findIndex((k) => k.includes("esValido") );
+    const varKey = Object.keys(rq.body)[varIndex];
+    const varValue = rq.body[varKey];
+
+    return `VALIDACION ${varValue?'APROBADO':'DESAPROBADO'}`;
+  }),
   async (rq, res) => {
     const cases = await rq.__bonitaInstance.getAllCases("Sociedades");
     const caseId = cases.json[cases.json.length - 1].id;

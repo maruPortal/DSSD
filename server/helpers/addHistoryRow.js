@@ -9,7 +9,7 @@ module.exports = (descripcion) => {
       username = userPayload.username;
     }
 
-    const data = { usuario: username, expediente_id: req.params.id, descripcion };
+    const data = { usuario: username, expediente_id: req.params.id, descripcion: (typeof descripcion === 'function') ? descripcion(req) : descripcion };
     const resultHistory = await supabase.from('historial').insert([data]);
     
     if (resultHistory.error) {
