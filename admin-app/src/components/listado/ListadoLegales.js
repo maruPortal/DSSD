@@ -8,7 +8,7 @@ const ListadoLegales = () => {
 
   useEffect(() => {
     let requestExpedientes = async () => {
-      const exps = await getExpedientes(2);
+      const exps = await getExpedientes([2,6]);
       const newExpedientes = [];
       exps.forEach((expediente) => {
         newExpedientes.push({

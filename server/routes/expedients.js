@@ -101,7 +101,7 @@ const notifyToApoderado = async (
     // envia correcciones al apoderado
     const res = await sendEmail(emailApoderado, template, {
       correcciones: rqBody.correcciones,
-      url: `http://localhost:3001/expediente/${id}`,
+      url: `http://localhost:3000/formulario-editar-sociedad/${id}`,
     });
 
     if (res.error) {
@@ -137,7 +137,11 @@ router.get("/", async (req, res, next) => {
 
   if (filters.length > 0) {
     filters.forEach((filter) => {
-      supabaseQuery.eq(filter.key, filter.val);
+      if(Array.isArray(JSON.parse(filter.val))) {
+        supabaseQuery.in(filter.key, JSON.parse(filter.val));
+      } else {
+        supabaseQuery.eq(filter.key, filter.val);
+      }
     });
   }
 
@@ -339,7 +343,7 @@ router.post(
  * body:
   { estado: 0 }
  */
-router.put("/:id", jwtVerify, tokenToBonitaInstance, async (req, res, next) => {
+router.put("/:id", async (req, res, next) => {
   try {
     let { data: expedients, error } = await supabase
       .from("expedient")
@@ -354,15 +358,30 @@ router.put("/:id", jwtVerify, tokenToBonitaInstance, async (req, res, next) => {
       return;
     }
 
-    if (req.__bonitaInstance) {
-      const cases = await req.__bonitaInstance.getAllCases("Sociedades");
-      const caseId = cases.json[cases.json.length - 1].id;
-      let updateVarRes = await req.__bonitaInstance.updateCaseVariable(
-        caseId,
-        "estado",
-        req.body.estado
-      );
-    }
+
+    let { bonitaUser } = await Bonita.login();
+
+    const cases = await bonitaUser.getAllCases("Sociedades");
+    const caseId = cases.json[cases.json.length - 1].id;
+    let updateVarRes = await bonitaUser.updateCaseVariable(
+      caseId,
+      "estado",
+      req.body.estado
+    );
+
+    const activities = await bonitaUser.getActivitiesOfCase(caseId);
+    const activityId = activities[0].id;
+
+    let userId = await bonitaUser.getUserID( 'guest' );
+    const assignCaseRes = await bonitaUser.assignCase(
+      userId,
+      activityId
+    );
+
+    const completeTaskRes = await bonitaUser.completeTask(
+      activityId
+    );
+
 
     res.json(expedients);
   } catch (error) {

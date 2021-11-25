@@ -11,7 +11,7 @@ export const loginUser = async (user) => {
 
 export const getExpedientes = async (estado = null) => {
   const result = await fetch(
-    `http://localhost:3002/expedients/${estado ? `?estado=${estado}` : ""}`
+    `http://localhost:3002/expedients/${(estado!==null) ? `?estado=${JSON.stringify(estado)}` : ""}`
   );
 
   const jsonResponse = await result.json();

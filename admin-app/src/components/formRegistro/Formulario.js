@@ -244,6 +244,7 @@ function Form({ form, setForm, enviarForm, textButton }) {
           )}
           <TextField
             select
+            value={form.apoderado}
             label="Apoderado"
             onChange={(e) => setForm({ ...form, apoderado: e.target.value })}
             error={["socios", "apoderado"].includes(errorForm?.key)}
@@ -264,7 +265,9 @@ function Form({ form, setForm, enviarForm, textButton }) {
             ))}
           </TextField>
           {textButton === "Editar" ? (
-            <a href={form.estatuto}>Estatuto</a>
+            <div className="customFieldBox">
+              <a href={form.estatuto} target="_blank">Estatuto Subido</a>
+            </div>
           ) : (
             <></>
           )}

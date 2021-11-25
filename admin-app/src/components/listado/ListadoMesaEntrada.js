@@ -8,7 +8,7 @@ const ListadoMesaEntrada = () => {
 
   useEffect(() => {
     let requestExpedientes = async () => {
-      const exps = await getExpedientes(0);
+      const exps = await getExpedientes([0,5]);
       const newExpedientes = [];
       exps.forEach((expediente) => {
         newExpedientes.push({
