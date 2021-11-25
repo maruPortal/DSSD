@@ -35,6 +35,10 @@ const BarChart = () => {
           aprobado: 0,
           desaprobado: 0,
         },
+        sistema: {
+          aprobado: 0,
+          desaprobado: 0,
+        },
       };
 
       Object.keys(validInvalid).forEach((user) => {
@@ -54,20 +58,23 @@ const BarChart = () => {
             entry.descripcion.includes("DESAPROBADO")
           ).length;
         }
+        if (user === 'SISTEMA') {
+          obj.sistema.aprobado = validInvalid[user].length;
+        }
       });
       setHistorial(obj);
     }
     getExp();
   }, []);
 
-  const labels = ["Mesa de Entradas", "Legales"];
+  const labels = ["Mesa de Entradas", "Legales", "Aprobado Automaticamente por Sistema"];
 
   const data = {
     labels,
     datasets: [
       {
         label: "APROBADO",
-        data: [historial?.mesaEntrada?.aprobado, historial?.legales?.aprobado],
+        data: [historial?.mesaEntrada?.aprobado, historial?.legales?.aprobado, historial?.sistema?.aprobado],
         backgroundColor: "rgba(255, 99, 132, 0.5)",
       },
       {
@@ -75,6 +82,7 @@ const BarChart = () => {
         data: [
           historial?.mesaEntrada?.desaprobado,
           historial?.legales?.desaprobado,
+          historial?.sistema?.desaprobado,
         ],
         backgroundColor: "rgba(53, 162, 235, 0.5)",
       },

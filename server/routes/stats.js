@@ -63,7 +63,6 @@ router.get("/ratioAprobacion/", async (req, res) => {
     .from("historial")
     .select("*")
     .like("descripcion", "%VALIDACION%")
-    .neq("usuario", "SISTEMA");
   const groupByUser = groupBy(historial, "usuario");
   res.json(groupByUser);
 });
