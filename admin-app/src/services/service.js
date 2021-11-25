@@ -90,5 +90,17 @@ export const getUsuarioAvgTime = async (usuario) => {
     `http://localhost:3002/stats/userAvgTime/${usuario}`
   );
   const jsonResponse = await result.json();
+export const getEstados = async () => {
+  const result = await fetch("http://localhost:3002/stats/estados");
+  const jsonResponse = await result.json();
+
+  return jsonResponse;
+};
+
+export const getValidAndInvalid = async () => {
+  const ratioAprobacion = await fetch(
+    "http://localhost:3002/stats/ratioAprobacion/"
+  );
+  const jsonResponse = await ratioAprobacion.json();
   return jsonResponse;
 };

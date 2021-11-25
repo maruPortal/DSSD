@@ -12,5 +12,6 @@ export const routes = {
   DASHBOARD: "/dashboard",
   CREARSOCIEDAD: "/registration-page",
   EDITARSOCIEDAD: "/formulario-editar-sociedad/:id", //modificar por ruta de mail
+  CHARTS: "/charts",
   ERROR: "*",
 };
